@@ -46,5 +46,13 @@
     "categories": ["Raciocínio", "Números", "Educação"],
     "description": "Some os objetos, escolha os pesos e deixe a balança perfeitamente equilibrada.",
     "source": "Coleção original"
+  },
+  {
+    "title": "Quebra-Cabeça Deslizante",
+    "file": "jogos/quebra-cabeca-deslizante.html",
+    "icon": "🧩",
+    "categories": ["Raciocínio", "Quebra-cabeça", "Percepção"],
+    "description": "Deslize as peças pelo espaço vazio e reconstrua a imagem em desafios 3×3 e 4×4.",
+    "source": "Coleção original"
   }
 ]
