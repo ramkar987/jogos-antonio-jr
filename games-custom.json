@@ -38,5 +38,13 @@
     "categories": ["Raciocínio", "Quebra-cabeça", "Atenção"],
     "description": "Gire os canos e crie um caminho contínuo para levar a água da torneira até a plantinha.",
     "source": "Coleção original"
+  },
+  {
+    "title": "Balança Maluca",
+    "file": "jogos/balanca-maluca.html",
+    "icon": "⚖️",
+    "categories": ["Raciocínio", "Números", "Educação"],
+    "description": "Some os objetos, escolha os pesos e deixe a balança perfeitamente equilibrada.",
+    "source": "Coleção original"
   }
 ]
