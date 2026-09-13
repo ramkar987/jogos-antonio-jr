@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Dentista Divertido</title>
+<style>
+:root{--bg:#eef8ff;--card:#fff;--text:#253047;--muted:#6b7280;--purple:#5b4fc4;--purple2:#4438a8;--line:#dce6ef;--gum:#f48fa8;--mouth:#7b2d3a;--good:#4f9f62;--warn:#f0a12b;--shadow:rgba(33,55,78,.12);--tool:#f7f5ff;--tool-border:#d8d2ff}
+[data-theme="dark"]{--bg:#171923;--card:#232633;--text:#f4f4f7;--muted:#b5b8c2;--purple:#9b91ff;--purple2:#8176e8;--line:#3a3e4d;--gum:#b55f75;--mouth:#3d1720;--good:#79c98b;--warn:#f1b758;--shadow:rgba(0,0,0,.35);--tool:#2c2f3e;--tool-border:#4a4e63}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;justify-content:center;padding:18px;user-select:none}
+.game{width:min(760px,100%)}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.title h1{margin:0;font-size:clamp(24px,5vw,34px);color:var(--purple)}.title p{margin:4px 0 0;color:var(--muted);font-size:14px}.theme{border:2px solid var(--line);background:var(--card);color:var(--text);width:42px;height:42px;border-radius:50%;font-size:19px;cursor:pointer}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:0 10px 34px var(--shadow);padding:16px}
+.topbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.stat{border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;background:color-mix(in srgb,var(--card) 93%,var(--purple) 7%)}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:18px}
+.patient{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 10px}.face{font-size:44px;filter:drop-shadow(0 3px 2px rgba(0,0,0,.08))}.speech{background:var(--tool);border:1px solid var(--tool-border);border-radius:16px;padding:9px 12px;font-weight:700;font-size:14px;max-width:430px}
+.status{text-align:center;min-height:24px;font-weight:700;margin:6px 0 10px;color:var(--text)}
+.mouth-wrap{position:relative;background:linear-gradient(#ffccd8,#f7a7ba);border-radius:50% 50% 44% 44%/42% 42% 58% 58%;padding:20px 18px 26px;margin:auto;max-width:600px;border:3px solid #e58ba1;box-shadow:inset 0 -10px 28px rgba(120,33,52,.12)}
+.mouth{background:var(--mouth);border-radius:48%;padding:18px 12px;min-height:250px;display:flex;flex-direction:column;justify-content:space-between;gap:24px;overflow:hidden;position:relative}
+.row{display:flex;justify-content:center;gap:7px}.row.bottom{align-items:flex-end}.tooth{position:relative;width:54px;height:72px;background:linear-gradient(145deg,#fff 0%,#f8f4ea 75%,#e8e1d3 100%);border:2px solid #d9d3c8;border-radius:16px 16px 24px 24px;box-shadow:inset -5px -5px 8px rgba(0,0,0,.04),0 2px 0 rgba(255,255,255,.6);cursor:crosshair;touch-action:none;overflow:hidden;transition:transform .12s,filter .2s}.bottom .tooth{border-radius:24px 24px 16px 16px}.tooth:hover{transform:scale(1.04)}.tooth.clean{filter:drop-shadow(0 0 6px rgba(255,255,255,.9))}
+.issue{position:absolute;pointer-events:none;transition:opacity .18s,transform .18s}.plaque{left:8px;top:18px;width:36px;height:24px;border-radius:50%;background:radial-gradient(circle at 40% 45%,#f6df6a 0 35%,#d7b833 38% 63%,transparent 66%);opacity:.9}.food{right:9px;top:26px;width:19px;height:19px;border-radius:45% 55%;background:#7d5a2c;box-shadow:-12px 10px 0 -5px #4d8d46,5px -7px 0 -6px #e56455}.cavity{left:17px;top:31px;width:20px;height:18px;border-radius:50%;background:radial-gradient(circle,#2b2421 0 28%,#5b4438 31% 60%,transparent 64%)}.dull{inset:0;background:rgba(127,137,151,.22)}.dull:after{content:'✦';position:absolute;right:6px;bottom:6px;color:#8e96a3;font-size:18px}.issue.hit{transform:scale(.78)}
+.tools{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px auto 8px;max-width:600px}.tool{border:2px solid var(--tool-border);background:var(--tool);color:var(--text);border-radius:16px;padding:10px 5px;cursor:pointer;font-weight:800;font-size:12px;min-height:70px;touch-action:manipulation}.tool span{display:block;font-size:27px;margin-bottom:3px}.tool.active{border-color:var(--purple);box-shadow:0 0 0 3px color-mix(in srgb,var(--purple) 20%,transparent);transform:translateY(-2px)}
+.progress{height:12px;background:color-mix(in srgb,var(--line) 75%,transparent);border-radius:99px;overflow:hidden;margin:10px auto 6px;max-width:600px}.progress>div{height:100%;width:0;background:linear-gradient(90deg,var(--purple),#7db3ff);transition:width .25s}
+.actions{display:flex;gap:8px;justify-content:center;margin-top:12px}.btn{border:0;border-radius:14px;padding:12px 18px;background:var(--purple);color:white;font-weight:800;cursor:pointer}.btn:active{transform:scale(.98)}.btn.secondary{background:var(--tool);color:var(--text);border:2px solid var(--tool-border)}
+.note{text-align:center;color:var(--muted);font-size:11px;margin:12px 6px 0}
+.overlay{position:fixed;inset:0;background:rgba(20,22,32,.72);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}.overlay.show{display:flex}.modal{background:var(--card);border-radius:24px;padding:22px;text-align:center;max-width:420px;width:100%;box-shadow:0 20px 70px rgba(0,0,0,.35)}.modal .big{font-size:64px}.modal h2{margin:5px 0;color:var(--purple)}.stars{font-size:34px;letter-spacing:3px}.confetti{position:fixed;pointer-events:none;z-index:60;font-size:24px;animation:fall 1.5s ease-in forwards}@keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(90vh) rotate(420deg);opacity:0}}
+@media(max-width:560px){body{padding:9px}.panel{padding:10px;border-radius:18px}.topbar{gap:5px}.stat{padding:6px 3px}.stat strong{font-size:15px}.mouth-wrap{padding:14px 8px 20px}.mouth{min-height:225px;padding:15px 6px;gap:20px}.row{gap:3px}.tooth{width:42px;height:62px}.tools{gap:5px}.tool{min-height:62px;padding:7px 2px;font-size:10px}.tool span{font-size:23px}.face{font-size:36px}.speech{font-size:12px}.plaque{left:5px;width:31px}.cavity{left:12px}.food{right:5px}}
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="header"><div class="title"><h1>🦷 Dentista Divertido</h1><p>Cuide do sorriso dos pacientes!</p></div><button class="theme" id="theme" aria-label="Alternar tema">🌙</button></div>
+  <div class="panel">
+    <div class="topbar">
+      <div class="stat"><small>Paciente</small><strong id="level">1 / 3</strong></div>
+      <div class="stat"><small>Pontos</small><strong id="score">0</strong></div>
+      <div class="stat"><small>Tratados</small><strong id="done">0</strong></div>
+      <div class="stat"><small>Recorde</small><strong id="best">0</strong></div>
+    </div>
+    <div class="patient"><div class="face" id="face">🐻</div><div class="speech" id="speech">Ai, doutor(a)! Meu sorriso precisa de ajuda!</div></div>
+    <div class="status" id="status">Escolha uma ferramenta e cuide do dente marcado.</div>
+    <div class="mouth-wrap">
+      <div class="mouth" id="mouth"><div class="row" id="top"></div><div class="row bottom" id="bottom"></div></div>
+    </div>
+    <div class="tools" id="tools">
+      <button class="tool active" data-tool="brush"><span>🪥</span>Escova</button>
+      <button class="tool" data-tool="water"><span>💦</span>Jatinho</button>
+      <button class="tool" data-tool="drill"><span>🦷</span>Broquinha</button>
+      <button class="tool" data-tool="polish"><span>✨</span>Polidor</button>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="actions"><button class="btn secondary" id="restart">↻ Reiniciar</button></div>
+    <div class="note">Brincadeira de consultório: não ensina tratamento real. Dentes de verdade são assunto para dentistas. 🙂</div>
+  </div>
+</div>
+<div class="overlay" id="overlay"><div class="modal"><div class="big" id="modalFace">😁</div><h2 id="modalTitle">Sorriso pronto!</h2><div class="stars" id="stars">⭐⭐⭐</div><p id="modalText"></p><button class="btn" id="next">Próximo paciente ▶</button></div></div>
+<script>
+(()=>{
+const TYPES={
+ plaque:{tool:'brush',name:'placa',hint:'Use a escova 🪥',hits:3},
+ food:{tool:'water',name:'sujeirinha',hint:'Use o jatinho 💦',hits:2},
+ cavity:{tool:'drill',name:'cárie de brincadeira',hint:'Use a broquinha do dentista 🦷',hits:3},
+ dull:{tool:'polish',name:'dente sem brilho',hint:'Use o polidor ✨',hits:3}
+};
+const PATIENTS=[
+ {face:'🐻',speech:'Comi biscoito demais. Dá para deixar meus dentes limpinhos?',types:['plaque','food'],count:7},
+ {face:'🦁',speech:'Meu rugido está ótimo, mas meu sorriso precisa do dentista!',types:['plaque','cavity','food'],count:9},
+ {face:'🐲',speech:'Sou um dragão valente! Quero um sorriso brilhando!',types:['plaque','food','cavity','dull'],count:11}
+];
+const top=document.getElementById('top'), bottom=document.getElementById('bottom'), status=document.getElementById('status');
+const scoreEl=document.getElementById('score'),doneEl=document.getElementById('done'),levelEl=document.getElementById('level'),bestEl=document.getElementById('best'),bar=document.getElementById('bar');
+const faceEl=document.getElementById('face'),speechEl=document.getElementById('speech'),tools=document.getElementById('tools'),overlay=document.getElementById('overlay');
+let level=0,score=0,totalDone=0,currentTool='brush',issues=[],lastHit=0,roundStart=0;
+let best=Number(localStorage.getItem('dentista-best')||0);bestEl.textContent=best;
+function beep(freq=520,dur=.08){try{const C=window.AudioContext||window.webkitAudioContext;const c=beep.ctx||(beep.ctx=new C());if(c.state==='suspended')c.resume();const o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.12,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+dur)}catch(e){}}
+function theme(t){document.documentElement.dataset.theme=t;document.getElementById('theme').textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('dentista-theme',t)}
+const saved=localStorage.getItem('dentista-theme');theme(saved||((matchMedia&&matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'));
+document.getElementById('theme').onclick=()=>theme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function makeTeeth(){top.innerHTML='';bottom.innerHTML='';issues=[];const patient=PATIENTS[level];const toothEls=[];for(let i=0;i<12;i++){const t=document.createElement('div');t.className='tooth';t.dataset.i=i;t.setAttribute('aria-label','Dente '+(i+1));(i<6?top:bottom).appendChild(t);toothEls.push(t);t.addEventListener('pointerdown',e=>useTool(t,e));t.addEventListener('pointerenter',e=>{if(e.buttons)useTool(t,e)});t.addEventListener('pointermove',e=>{if(e.buttons)useTool(t,e)})}
+ const chosen=shuffle([...Array(12).keys()]).slice(0,patient.count);chosen.forEach((idx,n)=>{const type=patient.types[n%patient.types.length];const cfg=TYPES[type];const mark=document.createElement('div');mark.className='issue '+type;toothEls[idx].appendChild(mark);issues.push({idx,type,hp:cfg.hits,max:cfg.hits,el:toothEls[idx],mark,done:false})});
+ roundStart=performance.now();updateProgress();}
+function useTool(tooth,e){if(overlay.classList.contains('show'))return;e.preventDefault();const now=performance.now();if(now-lastHit<90)return;lastHit=now;const i=Number(tooth.dataset.i);const issue=issues.find(x=>x.idx===i&&!x.done);if(!issue){status.textContent='Esse dente já está limpinho! 😁';beep(760,.05);return}const cfg=TYPES[issue.type];if(currentTool!==cfg.tool){status.textContent='Quase! '+cfg.hint;tooth.animate([{transform:'translateX(-2px)'},{transform:'translateX(2px)'},{transform:'translateX(0)'}],{duration:160});beep(180,.09);return}
+ issue.hp--;issue.mark.classList.add('hit');setTimeout(()=>issue.mark.classList.remove('hit'),120);issue.mark.style.opacity=Math.max(.2,issue.hp/issue.max);beep(500+((issue.max-issue.hp)*100),.06);status.textContent='Boa! Continue mais um pouquinho…';
+ if(issue.hp<=0){issue.done=true;issue.mark.remove();issue.el.classList.add('clean');score+=10;totalDone++;scoreEl.textContent=score;doneEl.textContent=totalDone;status.textContent='Perfeito! Dente tratado! ✨';beep(900,.12);updateProgress();if(issues.every(x=>x.done))setTimeout(finishRound,450)}}
+function updateProgress(){const done=issues.filter(x=>x.done).length;bar.style.width=(issues.length?done/issues.length*100:0)+'%'}
+tools.addEventListener('click',e=>{const b=e.target.closest('.tool');if(!b)return;currentTool=b.dataset.tool;tools.querySelectorAll('.tool').forEach(x=>x.classList.toggle('active',x===b));status.textContent={brush:'Escove os pontos amarelados 🪥',water:'Use o jatinho nas sujeirinhas 💦',drill:'Cuide das cáries de brincadeira 🦷',polish:'Dê brilho aos dentes opacos ✨'}[currentTool];beep(620,.05)});
+function startRound(){const p=PATIENTS[level];faceEl.textContent=p.face;speechEl.textContent=p.speech;levelEl.textContent=(level+1)+' / '+PATIENTS.length;status.textContent='Escolha a ferramenta certa para cada dente.';makeTeeth()}
+function finishRound(){const elapsed=(performance.now()-roundStart)/1000;const speedBonus=Math.max(0,Math.round(50-elapsed));score+=speedBonus;scoreEl.textContent=score;if(score>best){best=score;localStorage.setItem('dentista-best',best);bestEl.textContent=best}const final=level===PATIENTS.length-1;document.getElementById('modalFace').textContent=final?'🏆':'😁';document.getElementById('modalTitle').textContent=final?'Consultório campeão!':'Sorriso pronto!';document.getElementById('stars').textContent=speedBonus>25?'⭐⭐⭐':speedBonus>10?'⭐⭐':'⭐';document.getElementById('modalText').textContent=final?'Você cuidou de todos os pacientes e fez '+score+' pontos!':'Bônus de rapidez: +'+speedBonus+' pontos. Vamos para o próximo paciente?';document.getElementById('next').textContent=final?'Jogar de novo ↻':'Próximo paciente ▶';overlay.classList.add('show');confetti(final?28:12)}
+function confetti(n){const chars=['✨','⭐','🦷','🎉','💜'];for(let i=0;i<n;i++){const c=document.createElement('div');c.className='confetti';c.textContent=chars[Math.floor(Math.random()*chars.length)];c.style.left=Math.random()*96+'vw';c.style.top=(-20-Math.random()*100)+'px';c.style.animationDelay=(Math.random()*.5)+'s';document.body.appendChild(c);setTimeout(()=>c.remove(),2200)}}
+document.getElementById('next').onclick=()=>{overlay.classList.remove('show');if(level<PATIENTS.length-1){level++;startRound()}else{level=0;score=0;totalDone=0;scoreEl.textContent='0';doneEl.textContent='0';startRound()}};
+document.getElementById('restart').onclick=()=>{overlay.classList.remove('show');level=0;score=0;totalDone=0;scoreEl.textContent='0';doneEl.textContent='0';startRound()};
+startRound();
+})();
+</script>
+</body>
+</html>
