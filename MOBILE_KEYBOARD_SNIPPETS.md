@@ -811,65 +811,65 @@ svg{display:block;width:100%;height:auto;touch-action:none}
   document.addEventListener("keydown",keyHandler,{passive:false});
 })();
 </script>
+
+<div id="mobileEarControls" aria-label="Controles de resposta por ouvido">
+  <button id="mobileEarLeft" type="button">👂 ESQUERDA</button>
+  <button id="mobileEarRight" type="button">DIREITA 👂</button>
+</div>
+<script id="mobileEarScript">
+(()=>{
+  function emitControl(side){
+    const right=side==='right', init={key:'Control',code:right?'ControlRight':'ControlLeft',location:right?2:1,ctrlKey:true,bubbles:true,cancelable:true};
+```
+
+```html
+<script id="mobileEarScript">
+(()=>{
+  function emitControl(side){
+    const right=side==='right', init={key:'Control',code:right?'ControlRight':'ControlLeft',location:right?2:1,ctrlKey:true,bubbles:true,cancelable:true};
+    try{document.dispatchEvent(new KeyboardEvent('keydown',init));}catch(_){return}
+    setTimeout(()=>{try{document.dispatchEvent(new KeyboardEvent('keyup',init));}catch(_){}},70);
+  }
+  document.getElementById('mobileEarLeft')?.addEventListener('pointerdown',e=>{e.preventDefault();emitControl('left')});
+  document.getElementById('mobileEarRight')?.addEventListener('pointerdown',e=>{e.preventDefault();emitControl('right')});
+})();
+</script>
 </body>
 </html>
 ```
 
 ```html
-  <section class="stage" id="intro">
-    <div class="card">
-      <div style="font-size:74px">🐰🌳</div>
-      <h1>Floresta dos Bichinhos Escondidos</h1>
-      <p>Os bichinhos se esconderam atrás dos arbustos. Quando você <strong>escutar um bichinho</strong>, aperte o Ctrl do mesmo lado do som!</p>
-      <div class="keys">
-        <div class="key"><span class="ear">👂</span>Ctrl esquerdo</div>
-        <div class="key"><span class="ear">👂</span>Ctrl direito</div>
-      </div>
-      <div class="safety">
-        <strong>Para o adulto:</strong> use fone estéreo em ambiente silencioso. Ajuste o volume do computador para um nível confortável <strong>antes</strong> do jogo e não aumente durante as rodadas. Este jogo é uma triagem lúdica e não mede dB HL nem substitui avaliação audiológica.
-      </div>
-      <button class="btn" id="prepareBtn">Preparar a floresta</button>
-    </div>
-  </section>
-
+(()=>{
+  function emitControl(side){
+    const right=side==='right', init={key:'Control',code:right?'ControlRight':'ControlLeft',location:right?2:1,ctrlKey:true,bubbles:true,cancelable:true};
+    try{document.dispatchEvent(new KeyboardEvent('keydown',init));}catch(_){return}
+    setTimeout(()=>{try{document.dispatchEvent(new KeyboardEvent('keyup',init));}catch(_){}},70);
+  }
+  document.getElementById('mobileEarLeft')?.addEventListener('pointerdown',e=>{e.preventDefault();emitControl('left')});
+  document.getElementById('mobileEarRight')?.addEventListener('pointerdown',e=>{e.preventDefault();emitControl('right')});
+})();
+</script>
+</body>
+</html>
 ```
 
 ```html
-      <div style="font-size:74px">🐰🌳</div>
-      <h1>Floresta dos Bichinhos Escondidos</h1>
-      <p>Os bichinhos se esconderam atrás dos arbustos. Quando você <strong>escutar um bichinho</strong>, aperte o Ctrl do mesmo lado do som!</p>
-      <div class="keys">
-        <div class="key"><span class="ear">👂</span>Ctrl esquerdo</div>
-        <div class="key"><span class="ear">👂</span>Ctrl direito</div>
-      </div>
-      <div class="safety">
-        <strong>Para o adulto:</strong> use fone estéreo em ambiente silencioso. Ajuste o volume do computador para um nível confortável <strong>antes</strong> do jogo e não aumente durante as rodadas. Este jogo é uma triagem lúdica e não mede dB HL nem substitui avaliação audiológica.
-      </div>
-      <button class="btn" id="prepareBtn">Preparar a floresta</button>
-    </div>
-  </section>
+  }
+</style>
 
-  <section class="stage hidden" id="setup">
-    <div class="card">
-```
-
-```html
-      <h1>Floresta dos Bichinhos Escondidos</h1>
-      <p>Os bichinhos se esconderam atrás dos arbustos. Quando você <strong>escutar um bichinho</strong>, aperte o Ctrl do mesmo lado do som!</p>
-      <div class="keys">
-        <div class="key"><span class="ear">👂</span>Ctrl esquerdo</div>
-        <div class="key"><span class="ear">👂</span>Ctrl direito</div>
-      </div>
-      <div class="safety">
-        <strong>Para o adulto:</strong> use fone estéreo em ambiente silencioso. Ajuste o volume do computador para um nível confortável <strong>antes</strong> do jogo e não aumente durante as rodadas. Este jogo é uma triagem lúdica e não mede dB HL nem substitui avaliação audiológica.
-      </div>
-      <button class="btn" id="prepareBtn">Preparar a floresta</button>
-    </div>
-  </section>
-
-  <section class="stage hidden" id="setup">
-    <div class="card">
-      <div style="font-size:60px">🎧🐿️</div>
+<style id="mobileEarStyle">
+#mobileEarControls{display:none;position:fixed;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));z-index:9999;grid-template-columns:1fr 1fr;gap:10px;pointer-events:none}
+#mobileEarControls button{pointer-events:auto;min-height:64px;border:0;border-radius:18px;font:800 15px system-ui,-apple-system,sans-serif;color:#fff;box-shadow:0 7px 24px rgba(0,0,0,.22);touch-action:manipulation}
+#mobileEarLeft{background:#378ADD}#mobileEarRight{background:#E24B4A}
+#mobileEarControls button:active{transform:scale(.97)}
+@media (pointer:coarse),(max-width:820px){#mobileEarControls{display:grid}body{padding-bottom:92px!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sun"></div>
+  <div class="hill"></div><div class="ground"></div>
+  <div class="tree t1"></div><div class="tree t2"></div><div class="tree t3"></div><div class="tree t4"></div>
 ```
 
 ## Jogo da Forca

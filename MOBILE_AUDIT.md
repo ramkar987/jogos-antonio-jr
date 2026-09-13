@@ -2,7 +2,7 @@
 
 Relatório estático gerado automaticamente. Ele aponta riscos prováveis no código; não substitui teste real em iPhone/Android.
 
-**Total analisado:** 60 arquivos de jogos · **alto:** 2 · **médio:** 4 · **baixo:** 54
+**Total analisado:** 60 arquivos de jogos · **alto:** 2 · **médio:** 3 · **baixo:** 55
 
 ## Prioridade
 
@@ -11,7 +11,6 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | ALTO | cofre_dos_numeros.gz | `data/cofre_dos_numeros.gz.b64` | erro | não foi possível analisar: CRC check failed |
 | ALTO | estacionamento_maluco.gz | `data/estacionamento_maluco.gz.b64` | erro | não foi possível analisar: CRC check failed |
 | MÉDIO | A Aventura de Blinky | `jogos/aventura-do-blinky.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
-| MÉDIO | Floresta dos Bichinhos Escondidos | `data/floresta_bichinhos_escondidos.gz.b64` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
 | MÉDIO | Jogo da Forca | `jogos/jogo-da-forca.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
 | MÉDIO | Quebra-Cabeça Deslizante | `jogos/quebra-cabeca-deslizante.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
 | BAIXO | Apaga-Incêndio | `data/apaga_incendio.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
@@ -34,6 +33,7 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | BAIXO | Entrega do Carteiro | `data/entrega_do_carteiro.gz.b64` | teclado, pointer, touch, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Equilibra a Torre | `data/equilibra_a_torre.gz.b64` | teclado, touch, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Espelho Mágico | `data/espelho_magico.gz.b64` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Floresta dos Bichinhos Escondidos | `data/floresta_bichinhos_escondidos.gz.b64` | teclado, pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Fábrica de Pintinhos | `jogos/fabrica-de-pintinhos.html` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Fábrica de Sorvete | `jogos/fabrica-de-sorvete.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jardim Mágico | `jogos/jardim-magico.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
