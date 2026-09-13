@@ -29,10 +29,10 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add jogos games-imported.json
+          git add jogos games.json
           if git diff --cached --quiet; then
             echo 'Nenhuma alteração para publicar.'
             exit 0
           fi
-          git commit -m 'chore: importar jogos enviados em ZIP'
+          git commit -m 'chore: importar jogos e atualizar catálogo'
           git push
