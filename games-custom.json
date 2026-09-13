@@ -14,5 +14,13 @@
     "categories": ["Ação", "Coordenação", "Educação"],
     "description": "Recolha garrafas, latas, sacolas e pneus sem encostar nos peixes e outros animais marinhos.",
     "source": "Coleção original"
+  },
+  {
+    "title": "Jardim Mágico",
+    "file": "jogos/jardim-magico.html",
+    "icon": "🌻",
+    "categories": ["Sequência", "Atenção", "Educação"],
+    "description": "Plante, regue, cuide e colha seguindo a sequência certa para fazer o jardim florescer.",
+    "source": "Coleção original"
   }
 ]
