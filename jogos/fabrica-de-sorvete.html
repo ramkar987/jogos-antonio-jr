@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Fábrica de Sorvete</title>
+<style>
+:root{--bg:#fff7ed;--card:#fff;--ink:#2d2942;--muted:#716b7c;--line:#eadfce;--pink:#ec6f91;--purple:#6653b8;--green:#5d9b64;--shadow:rgba(70,45,30,.12);--tray:#f5ecdf;--ok:#e7f6e9;--bad:#fde8e8}
+[data-theme="dark"]{--bg:#181718;--card:#242224;--ink:#f5f0ea;--muted:#b9b1a9;--line:#464046;--pink:#f08aaa;--purple:#a99af1;--green:#82bd89;--shadow:rgba(0,0,0,.35);--tray:#302c2d;--ok:#203929;--bad:#402326}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}body{display:grid;place-items:center;padding:14px}.game{width:min(760px,100%);background:var(--card);border:1px solid var(--line);border-radius:26px;box-shadow:0 14px 40px var(--shadow);padding:18px}.top{display:flex;align-items:center;gap:12px}.title{flex:1}.title h1{font-size:clamp(22px,5vw,34px);margin:0}.title p{margin:3px 0 0;color:var(--muted);font-size:14px}.theme{border:1px solid var(--line);background:var(--tray);color:var(--ink);width:42px;height:42px;border-radius:50%;font-size:19px;cursor:pointer}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}.stat{background:var(--tray);border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center}.stat b{display:block;font-size:20px}.stat small{color:var(--muted)}.orderbox{border:2px dashed var(--line);border-radius:20px;padding:12px;background:linear-gradient(180deg,var(--card),var(--tray));text-align:center}.customer{font-size:40px}.order-title{font-weight:800;margin-top:2px}.order{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;min-height:56px;margin-top:8px}.step{min-width:48px;padding:7px 8px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:24px;position:relative}.step.done{background:var(--ok);opacity:.65}.step.next{outline:3px solid color-mix(in srgb,var(--pink) 60%,transparent);transform:translateY(-2px)}.arrow{color:var(--muted);font-weight:800}.work{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}.preview,.statusbox{border:1px solid var(--line);border-radius:18px;background:var(--tray);min-height:205px}.preview{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:12px;overflow:hidden}.ice{display:flex;flex-direction:column-reverse;align-items:center;min-height:175px;justify-content:flex-start}.cone{font-size:58px;line-height:.8;margin-top:-6px}.scoop{width:66px;height:56px;border-radius:52% 52% 46% 46%;border:2px solid rgba(0,0,0,.08);margin-bottom:-10px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.08);position:relative}.topping{font-size:34px;z-index:5;margin-bottom:-5px}.statusbox{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:15px;text-align:center}.statusbox .big{font-size:46px}.status{font-weight:800;font-size:17px;margin:8px 0 4px}.hint{font-size:13px;color:var(--muted);line-height:1.35}.stations{display:grid;gap:10px}.group{border:1px solid var(--line);border-radius:17px;padding:10px}.group h3{font-size:14px;margin:0 0 8px;color:var(--muted)}.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}.choice{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 7px;cursor:pointer;min-height:70px;font-weight:750;touch-action:manipulation}.choice .em{display:block;font-size:27px;margin-bottom:3px}.choice:active{transform:scale(.97)}.choice.locked{opacity:.35;pointer-events:none}.message{min-height:26px;text-align:center;font-weight:800;margin:10px 0 0}.message.ok{color:var(--green)}.message.bad{color:#c84b51}.footer{display:flex;gap:8px;margin-top:10px}.btn{flex:1;border:0;border-radius:15px;padding:13px;font-weight:800;cursor:pointer}.primary{background:var(--purple);color:white}.secondary{background:var(--tray);color:var(--ink);border:1px solid var(--line)}.overlay{position:fixed;inset:0;background:rgba(0,0,0,.58);display:none;place-items:center;padding:18px;z-index:20}.overlay.show{display:grid}.modal{width:min(420px,100%);background:var(--card);color:var(--ink);border-radius:24px;padding:24px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}.modal .emoji{font-size:58px}.modal h2{margin:8px 0}.stars{font-size:34px;letter-spacing:4px}@media(max-width:600px){.game{padding:14px;border-radius:20px}.stats{grid-template-columns:repeat(2,1fr)}.work{grid-template-columns:1fr}.preview,.statusbox{min-height:160px}.statusbox{display:none}.choices{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<main class="game">
+  <div class="top"><div class="title"><h1>🍦 Fábrica de Sorvete</h1><p>Monte o pedido exatamente na ordem certa.</p></div><button class="theme" id="theme" aria-label="Alternar tema">🌙</button></div>
+  <section class="stats">
+    <div class="stat"><small>⭐ Pontos</small><b id="score">0</b></div>
+    <div class="stat"><small>🔥 Sequência</small><b id="streak">0</b></div>
+    <div class="stat"><small>🏭 Fase</small><b id="level">1</b></div>
+    <div class="stat"><small>❤️ Vidas</small><b id="lives">3</b></div>
+  </section>
+  <section class="orderbox">
+    <div class="customer" id="customer">🧒</div>
+    <div class="order-title">Pedido do cliente</div>
+    <div class="order" id="order"></div>
+  </section>
+  <section class="work">
+    <div class="preview"><div class="ice" id="ice"><div class="cone" id="conePreview">❔</div></div></div>
+    <div class="statusbox"><div class="big" id="statusEmoji">👩‍🍳</div><div class="status" id="status">Comece pela casquinha!</div><div class="hint" id="hint">Olhe o pedido acima e toque nos ingredientes na mesma ordem.</div></div>
+  </section>
+  <section class="stations" id="stations">
+    <div class="group"><h3>1. CASQUINHAS</h3><div class="choices" id="bases"></div></div>
+    <div class="group"><h3>2. SABORES</h3><div class="choices" id="flavors"></div></div>
+    <div class="group"><h3>3. COBERTURAS</h3><div class="choices" id="tops"></div></div>
+  </section>
+  <div class="message" id="message"></div>
+  <div class="footer"><button class="btn secondary" id="repeat">👀 Repetir pedido</button><button class="btn primary" id="restart">🔄 Reiniciar</button></div>
+</main>
+<div class="overlay" id="overlay"><div class="modal"><div class="emoji" id="modalEmoji">🎉</div><h2 id="modalTitle">Muito bem!</h2><div class="stars" id="stars">⭐⭐⭐</div><p id="modalText"></p><button class="btn primary" id="continue">Próximo pedido ▶</button></div></div>
+<script>
+(()=>{
+const BASES=[
+ {id:'cone',name:'Casquinha',emoji:'🍦',view:'🔻'},
+ {id:'waffle',name:'Crocante',emoji:'🧇',view:'🔶'},
+ {id:'cup',name:'Copinho',emoji:'🥤',view:'🥤'}
+];
+const FLAVORS=[
+ {id:'vanilla',name:'Baunilha',emoji:'🌼',color:'#f7e5a9'},
+ {id:'strawberry',name:'Morango',emoji:'🍓',color:'#ef8ca2'},
+ {id:'chocolate',name:'Chocolate',emoji:'🍫',color:'#82543d'},
+ {id:'grape',name:'Uva',emoji:'🍇',color:'#a483c8'},
+ {id:'mint',name:'Menta',emoji:'🌿',color:'#88cfa4'},
+ {id:'blue',name:'Céu Azul',emoji:'🫐',color:'#79b8e8'}
+];
+const TOPS=[
+ {id:'sprinkles',name:'Granulado',emoji:'🌈'},
+ {id:'cherry',name:'Cereja',emoji:'🍒'},
+ {id:'cookie',name:'Biscoito',emoji:'🍪'},
+ {id:'caramel',name:'Caramelo',emoji:'🍯'},
+ {id:'star',name:'Estrelinhas',emoji:'⭐'}
+];
+const CUSTOMERS=['🧒','👧','👦','👩','👨','🧑‍🚀','🧙‍♀️','🦸‍♂️'];
+let score=0,streak=0,level=1,lives=3,served=0,order=[],pos=0,current=[];
+const $=id=>document.getElementById(id);
+const els={score:$('score'),streak:$('streak'),level:$('level'),lives:$('lives'),order:$('order'),customer:$('customer'),ice:$('ice'),cone:$('conePreview'),status:$('status'),statusEmoji:$('statusEmoji'),hint:$('hint'),message:$('message'),overlay:$('overlay'),modalTitle:$('modalTitle'),modalText:$('modalText'),modalEmoji:$('modalEmoji'),stars:$('stars')};
+let ctx=null;function tone(freq=500,d=.08,type='sine'){try{ctx??=new (window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator(),g=ctx.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.12,ctx.currentTime);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+d);o.connect(g).connect(ctx.destination);o.start();o.stop(ctx.currentTime+d)}catch{}}
+function beepOk(){tone(660,.08);setTimeout(()=>tone(880,.1),70)}function beepBad(){tone(180,.15,'square')}
+function rand(a){return a[Math.floor(Math.random()*a.length)]}function pickUnique(a,n){return [...a].sort(()=>Math.random()-.5).slice(0,n)}
+function itemBy(type,id){return (type==='base'?BASES:type==='flavor'?FLAVORS:TOPS).find(x=>x.id===id)}
+function makeOrder(){
+ const maxFlavor=Math.min(FLAVORS.length,3+Math.floor((level-1)/2));
+ const maxTop=Math.min(TOPS.length,2+Math.floor((level-1)/2));
+ const availableBases=BASES.slice(0,Math.min(BASES.length,level>=4?3:level>=2?2:1));
+ const base=rand(availableBases);
+ const scoopCount=level<3?1:level<6?2:3;
+ const chosenFlavors=pickUnique(FLAVORS.slice(0,maxFlavor),scoopCount);
+ const topCount=level<5?1:2;
+ const chosenTops=pickUnique(TOPS.slice(0,maxTop),topCount);
+ order=[{type:'base',id:base.id},...chosenFlavors.map(x=>({type:'flavor',id:x.id})),...chosenTops.map(x=>({type:'top',id:x.id}))];
+ pos=0;current=[];els.customer.textContent=rand(CUSTOMERS);renderOrder();renderPreview();setStatus('Comece pela casquinha!','👩‍🍳');els.message.textContent='';updateLocks();
+}
+function renderOrder(){els.order.innerHTML='';order.forEach((s,i)=>{const it=itemBy(s.type,s.id);const d=document.createElement('div');d.className='step'+(i<pos?' done':i===pos?' next':'');d.innerHTML=`<div>${it.emoji}</div><small style="font-size:10px">${it.name}</small>`;els.order.appendChild(d);if(i<order.length-1){const a=document.createElement('span');a.className='arrow';a.textContent='›';els.order.appendChild(a)}})}
+function renderChoices(){
+ function fill(id,items,type){$(id).innerHTML='';items.forEach(it=>{const b=document.createElement('button');b.className='choice';b.dataset.type=type;b.dataset.id=it.id;b.innerHTML=`<span class="em">${it.emoji}</span>${it.name}`;b.addEventListener('click',()=>choose(type,it.id));$(id).appendChild(b)})}
+ fill('bases',BASES,'base');fill('flavors',FLAVORS,'flavor');fill('tops',TOPS,'top');
+}
+function updateLocks(){document.querySelectorAll('.choice').forEach(b=>{const step=order[pos];b.classList.toggle('locked',!step||b.dataset.type!==step.type)})}
+function choose(type,id){if(pos>=order.length)return;const want=order[pos];if(type!==want.type||id!==want.id){wrong();return}current.push({type,id});pos++;score+=10+streak*2;streak++;beepOk();flash('Certo! ✨','ok');renderOrder();renderPreview();updateStats();if(pos>=order.length){setStatus('Pedido pronto!','🎉');updateLocks();setTimeout(finishOrder,450)}else{const n=order[pos];setStatus(n.type==='flavor'?'Agora escolha o sabor!':n.type==='top'?'Hora da cobertura!':'Escolha a base!','👉') ;updateLocks()}}
+function wrong(){lives--;streak=0;score=Math.max(0,score-5);beepBad();flash('Ops! Esse não é o próximo ingrediente.','bad');updateStats();els.statusEmoji.textContent='🤔';if(lives<=0)setTimeout(gameOver,300)}
+function flash(t,c){els.message.textContent=t;els.message.className='message '+c;clearTimeout(flash.t);flash.t=setTimeout(()=>{els.message.textContent='';els.message.className='message'},1000)}
+function setStatus(t,e){els.status.textContent=t;els.statusEmoji.textContent=e}
+function renderPreview(){els.ice.innerHTML='';const base=current.find(x=>x.type==='base');const cone=document.createElement('div');cone.className='cone';cone.textContent=base?(itemBy('base',base.id).view):'❔';els.ice.appendChild(cone);current.filter(x=>x.type==='flavor').forEach(x=>{const it=itemBy('flavor',x.id),s=document.createElement('div');s.className='scoop';s.style.background=it.color;s.title=it.name;els.ice.appendChild(s)});current.filter(x=>x.type==='top').forEach(x=>{const it=itemBy('top',x.id),t=document.createElement('div');t.className='topping';t.textContent=it.emoji;els.ice.appendChild(t)})}
+function updateStats(){els.score.textContent=score;els.streak.textContent=streak;els.level.textContent=level;els.lives.textContent='❤️'.repeat(Math.max(0,lives))||'0'}
+function finishOrder(){served++;score+=50+level*10;const stars=streak>=order.length?3:2;const best=Number(localStorage.getItem('sorvete-best')||0);if(score>best)localStorage.setItem('sorvete-best',score);els.modalEmoji.textContent='🍨';els.modalTitle.textContent='Pedido perfeito!';els.stars.textContent='⭐'.repeat(stars);els.modalText.textContent=`Cliente feliz! +${50+level*10} pontos. Você já entregou ${served} pedido${served===1?'':'s'}.`;els.overlay.classList.add('show');if(served%4===0)level++;updateStats()}
+function next(){els.overlay.classList.remove('show');makeOrder()}
+function gameOver(){const best=Math.max(score,Number(localStorage.getItem('sorvete-best')||0));localStorage.setItem('sorvete-best',best);els.modalEmoji.textContent='🍦';els.modalTitle.textContent='Fim do turno!';els.stars.textContent='🏆';els.modalText.textContent=`Você fez ${score} pontos e entregou ${served} pedidos. Recorde: ${best}.`;const b=$('continue');b.textContent='Jogar novamente';b.onclick=()=>{b.textContent='Próximo pedido ▶';b.onclick=next;reset()};els.overlay.classList.add('show')}
+function reset(){score=0;streak=0;level=1;lives=3;served=0;updateStats();els.overlay.classList.remove('show');makeOrder()}
+$('continue').onclick=next;$('restart').onclick=reset;$('repeat').onclick=()=>{renderOrder();flash('Confira o pedido lá em cima 👆','ok')};
+const theme=$('theme');function setTheme(t){document.documentElement.dataset.theme=t;theme.textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('sorvete-theme',t)}setTheme(localStorage.getItem('sorvete-theme')||'light');theme.onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+renderChoices();updateStats();makeOrder();
+})();
+</script>
+</body>
+</html>
