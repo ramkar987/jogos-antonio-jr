@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Encaixa Cano</title>
+<style>
+:root{--bg:#f5fbff;--card:#fff;--text:#25323b;--muted:#71808b;--accent:#378ADD;--accent2:#639922;--tile:#eef5f8;--border:#cbd8df;--pipe:#697982;--water:#41a7e8;--soil:#d9b77d;--shadow:rgba(0,0,0,.09)}
+[data-theme="dark"]{--bg:#162028;--card:#202b33;--text:#eef6fb;--muted:#a7b5bf;--accent:#67b7ee;--accent2:#8fbd55;--tile:#2a3740;--border:#43525c;--pipe:#b5c1c8;--soil:#70563b;--shadow:rgba(0,0,0,.35)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center;padding:18px}.card{width:min(96vw,620px);background:var(--card);border-radius:24px;padding:20px;box-shadow:0 10px 35px var(--shadow);text-align:center;position:relative}.theme{position:absolute;right:16px;top:16px;border:1px solid var(--border);background:var(--tile);color:var(--text);border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer}h1{margin:0 48px 4px;font-size:24px}.sub{margin:0 0 14px;color:var(--muted);font-size:14px}.stats{display:flex;justify-content:center;gap:26px;flex-wrap:wrap;margin:10px 0}.stat small{display:block;color:var(--muted);font-size:11px}.stat b{font-size:19px}.status{min-height:24px;font-weight:700;margin:8px 0 12px}.board-wrap{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;gap:8px}.source,.goal{font-size:30px;display:flex;align-items:center;justify-content:center}.board{display:grid;gap:5px;background:var(--soil);padding:8px;border-radius:18px;touch-action:manipulation}.tile{aspect-ratio:1;border:1px solid var(--border);border-radius:12px;background:var(--tile);position:relative;cursor:pointer;padding:0;overflow:hidden}.tile:active{transform:scale(.96)}.tile.fixed{cursor:default}.tile.wet{box-shadow:inset 0 0 0 3px rgba(65,167,232,.35)}.tile.hint{animation:hint .65s ease 2}@keyframes hint{50%{transform:scale(1.08);box-shadow:0 0 0 4px rgba(239,159,39,.35)}}.pipe{position:absolute;inset:0}.seg{position:absolute;background:var(--pipe);border-radius:8px}.seg.wet{background:var(--water)}.seg.u,.seg.d{width:22%;height:52%;left:39%}.seg.u{top:0}.seg.d{bottom:0}.seg.l,.seg.r{height:22%;width:52%;top:39%}.seg.l{left:0}.seg.r{right:0}.hub{position:absolute;width:30%;height:30%;left:35%;top:35%;border-radius:50%;background:var(--pipe)}.wet .hub{background:var(--water)}.controls{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}.btn{border:0;border-radius:14px;padding:11px 14px;background:var(--accent);color:white;font-weight:800;cursor:pointer}.btn.secondary{background:var(--tile);color:var(--text);border:1px solid var(--border)}.legend{margin-top:12px;color:var(--muted);font-size:12px}.overlay{position:absolute;inset:0;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;border-radius:24px;padding:20px;z-index:5}.overlay.show{display:flex}.modal{background:var(--card);color:var(--text);border-radius:20px;padding:24px;width:min(90%,380px)}.modal .big{font-size:50px}.modal h2{margin:6px 0}.stars{font-size:30px;letter-spacing:4px}.next{width:100%;margin-top:14px}@media(max-width:460px){.card{padding:16px 12px}.board-wrap{grid-template-columns:34px 1fr 34px;gap:4px}.board{gap:3px;padding:5px}.tile{border-radius:8px}.source,.goal{font-size:24px}}
+</style>
+</head>
+<body><main class="card">
+<button class="theme" id="theme">🌙</button>
+<h1>🔧 Encaixa Cano</h1><p class="sub">Gire os canos e leve a água da torneira até a plantinha.</p>
+<div class="stats"><div class="stat"><small>FASE</small><b id="level">1 / 5</b></div><div class="stat"><small>GIROS</small><b id="moves">0</b></div><div class="stat"><small>PONTOS</small><b id="score">0</b></div><div class="stat"><small>RECORDE</small><b id="record">0</b></div></div>
+<div class="status" id="status">Clique nos canos para girar ↻</div>
+<div class="board-wrap"><div class="source" id="source">🚰</div><div class="board" id="board"></div><div class="goal" id="goal">🌱</div></div>
+<div class="controls"><button class="btn secondary" id="reset">↺ Reiniciar fase</button><button class="btn secondary" id="hint">💡 Dica</button></div>
+<div class="legend">Conecte as pontas dos canos. Quando a água chegar à 🌱, a fase termina.</div>
+<div class="overlay" id="overlay"><div class="modal"><div class="big">💦🌿</div><h2 id="winTitle">Água chegou!</h2><div class="stars" id="stars">⭐⭐⭐</div><p id="winText"></p><button class="btn next" id="next">Próxima fase ▶</button></div></div>
+</main>
+<script>
+(()=>{
+const DIRS=['u','r','d','l'], DELTA={u:[0,-1],r:[1,0],d:[0,1],l:[-1,0]}, OPP={u:'d',d:'u',l:'r',r:'l'};
+const levels=[
+ {n:4,path:[[0,1],[1,1],[2,1],[2,2],[3,2]]},
+ {n:5,path:[[0,2],[1,2],[1,1],[2,1],[3,1],[3,2],[3,3],[4,3]]},
+ {n:5,path:[[0,3],[1,3],[1,2],[2,2],[2,1],[3,1],[3,2],[4,2]]},
+ {n:6,path:[[0,1],[1,1],[1,2],[2,2],[3,2],[3,1],[4,1],[4,2],[4,3],[5,3]]},
+ {n:6,path:[[0,4],[1,4],[1,3],[2,3],[2,2],[3,2],[3,1],[4,1],[4,2],[5,2]]}
+];
+const board=document.getElementById('board'), levelEl=document.getElementById('level'),movesEl=document.getElementById('moves'),scoreEl=document.getElementById('score'),recordEl=document.getElementById('record'),statusEl=document.getElementById('status'),overlay=document.getElementById('overlay'),starsEl=document.getElementById('stars'),winText=document.getElementById('winText'),nextBtn=document.getElementById('next');
+let levelIndex=0,moves=0,score=0,cells=[],pathSet=new Set(),solved=false,record=+(localStorage.getItem('encaixa-cano-record')||0);recordEl.textContent=record;
+let actx=null;function beep(freq=500,d=.08){try{actx ||= new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=freq;g.gain.setValueAtTime(.12,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);o.connect(g).connect(actx.destination);o.start();o.stop(actx.currentTime+d)}catch(e){}}
+function key(x,y){return `${x},${y}`}
+function dirBetween(a,b){if(b[0]>a[0])return'r';if(b[0]<a[0])return'l';if(b[1]>a[1])return'd';return'u'}
+function rotateDir(d,k){return DIRS[(DIRS.indexOf(d)+k)%4]}
+function canonical(conns){const s=[...conns].sort((a,b)=>DIRS.indexOf(a)-DIRS.indexOf(b));if(s.length===1)return{type:'end',base:['r']};if(s.length===2&&((s.includes('l')&&s.includes('r'))||(s.includes('u')&&s.includes('d'))))return{type:'straight',base:['l','r']};if(s.length===2)return{type:'corner',base:['u','r']};if(s.length===3)return{type:'tee',base:['u','r','l']};return{type:'cross',base:['u','r','d','l']}}
+function orientationFor(base,target){for(let r=0;r<4;r++){const test=base.map(d=>rotateDir(d,r));if(test.length===target.length&&test.every(d=>target.includes(d)))return r}return 0}
+function makeTile(x,y,needed,isPath,fixed=false){const spec=canonical(needed);const targetRot=orientationFor(spec.base,needed);let rot=fixed?targetRot:Math.floor(Math.random()*4);if(!fixed&&isPath&&rot===targetRot)rot=(rot+1+Math.floor(Math.random()*3))%4;return{x,y,type:spec.type,base:spec.base,rot,targetRot,isPath,fixed,wet:false}}
+function buildLevel(){solved=false;overlay.classList.remove('show');moves=0;movesEl.textContent=0;statusEl.textContent='Clique nos canos para girar ↻';const L=levels[levelIndex],n=L.n;levelEl.textContent=`${levelIndex+1} / ${levels.length}`;board.style.gridTemplateColumns=`repeat(${n},1fr)`;board.innerHTML='';cells=[];pathSet=new Set(L.path.map(([x,y])=>key(x,y)));
+ const neededMap=new Map();L.path.forEach((p,i)=>{const con=[];if(i===0)con.push('l');else con.push(dirBetween(p,L.path[i-1]));if(i===L.path.length-1)con.push('r');else con.push(dirBetween(p,L.path[i+1]));neededMap.set(key(...p),con)});
+ for(let y=0;y<n;y++)for(let x=0;x<n;x++){const k=key(x,y),isPath=pathSet.has(k);let needed;if(isPath)needed=neededMap.get(k);else{const r=Math.random();needed=r<.15?['u','r','d']:r<.55?['l','r']:['u','r']}const fixed=isPath&&(k===key(...L.path[0])||k===key(...L.path[L.path.length-1]));const t=makeTile(x,y,needed,isPath,fixed);cells.push(t);renderTile(t)}
+ updateFlow();}
+function connections(t){return t.base.map(d=>rotateDir(d,t.rot))}
+function renderTile(t){const b=document.createElement('button');b.className='tile'+(t.fixed?' fixed':'');b.dataset.x=t.x;b.dataset.y=t.y;b.setAttribute('aria-label','Cano giratório');b.innerHTML='<div class="pipe"></div>';if(!t.fixed)b.addEventListener('click',()=>turn(t));board.appendChild(b);draw(t)}
+function draw(t){const n=levels[levelIndex].n,b=board.children[t.y*n+t.x];if(!b)return;b.classList.toggle('wet',t.wet);const p=b.firstElementChild;p.innerHTML='<span class="hub"></span>'+connections(t).map(d=>`<span class="seg ${d}${t.wet?' wet':''}"></span>`).join('');}
+function turn(t){if(solved)return;t.rot=(t.rot+1)%4;moves++;movesEl.textContent=moves;beep(360,0.05);updateFlow()}
+function tileAt(x,y){return cells.find(t=>t.x===x&&t.y===y)}
+function updateFlow(){cells.forEach(t=>t.wet=false);const L=levels[levelIndex],start=tileAt(...L.path[0]),q=[start],seen=new Set([key(start.x,start.y)]);start.wet=true;while(q.length){const t=q.shift();for(const d of connections(t)){const [dx,dy]=DELTA[d],nx=t.x+dx,ny=t.y+dy,other=tileAt(nx,ny);if(!other||!connections(other).includes(OPP[d]))continue;const k=key(nx,ny);if(!seen.has(k)){seen.add(k);other.wet=true;q.push(other)}}}cells.forEach(draw);const end=tileAt(...L.path[L.path.length-1]);if(end.wet&&connections(start).includes('l')&&connections(end).includes('r'))win()}
+function win(){if(solved)return;solved=true;beep(740,.12);setTimeout(()=>beep(990,.16),120);const par=levels[levelIndex].path.length*2;const stars=moves<=par?3:moves<=par+6?2:1;const gained=Math.max(150,600-moves*12)+stars*100;score+=gained;scoreEl.textContent=score;if(score>record){record=score;recordEl.textContent=record;localStorage.setItem('encaixa-cano-record',record)}starsEl.textContent='⭐'.repeat(stars)+'☆'.repeat(3-stars);winText.textContent=`Você usou ${moves} giros e ganhou ${gained} pontos.`;nextBtn.textContent=levelIndex===levels.length-1?'Jogar de novo ↻':'Próxima fase ▶';setTimeout(()=>overlay.classList.add('show'),450)}
+document.getElementById('reset').onclick=()=>buildLevel();document.getElementById('hint').onclick=()=>{if(solved)return;const wrong=cells.find(t=>t.isPath&&!t.fixed&&t.rot!==t.targetRot);if(!wrong){statusEl.textContent='Os canos principais já estão certos. Veja as conexões!';return}wrong.rot=wrong.targetRot;moves+=2;movesEl.textContent=moves;const n=levels[levelIndex].n,b=board.children[wrong.y*n+wrong.x];b.classList.add('hint');setTimeout(()=>b.classList.remove('hint'),1400);statusEl.textContent='💡 Ajustei um cano. A dica custou 2 giros.';beep(620,.08);updateFlow()};
+nextBtn.onclick=()=>{if(levelIndex===levels.length-1){levelIndex=0;score=0;scoreEl.textContent=0}else levelIndex++;buildLevel()};
+const theme=document.getElementById('theme');function applyTheme(t){document.documentElement.dataset.theme=t;theme.textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('encaixa-cano-theme',t)}applyTheme(localStorage.getItem('encaixa-cano-theme')||((matchMedia('(prefers-color-scheme:dark)').matches)?'dark':'light'));theme.onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+buildLevel();
+})();
+</script></body></html>
