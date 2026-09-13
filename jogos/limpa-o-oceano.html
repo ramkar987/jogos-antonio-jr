@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Limpa o Oceano</title>
+<style>
+:root{--bg:#e9f8ff;--card:#fff;--text:#17324d;--muted:#60758a;--blue:#378ADD;--blue2:#1f6fb8;--green:#639922;--orange:#EF9F27;--red:#E24B4A;--border:#c9e4f2;--shadow:rgba(31,111,184,.15)}
+[data-theme="dark"]{--bg:#10202b;--card:#172b38;--text:#edf8ff;--muted:#a8bdca;--border:#315267;--shadow:rgba(0,0,0,.35)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+body{display:flex;justify-content:center;padding:18px}
+.game{width:min(760px,100%);background:var(--card);border-radius:24px;box-shadow:0 12px 34px var(--shadow);padding:18px;position:relative}
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+h1{font-size:25px;margin:0;color:var(--blue2)}
+.sub{margin:5px 0 0;color:var(--muted);font-size:14px}
+.theme{border:2px solid var(--border);background:var(--card);color:var(--text);border-radius:50%;width:40px;height:40px;font-size:19px;cursor:pointer}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 10px}
+.stat{border:2px solid var(--border);border-radius:14px;padding:8px;text-align:center;background:color-mix(in srgb,var(--card) 88%,var(--blue) 12%)}
+.stat b{display:block;font-size:19px}.stat span{font-size:11px;color:var(--muted)}
+.status{text-align:center;min-height:22px;font-weight:700;margin:7px 0;color:var(--text)}
+.ocean{position:relative;width:100%;height:min(62vh,520px);min-height:360px;overflow:hidden;border:3px solid #8fd0e8;border-radius:20px;background:linear-gradient(#8eddf4 0%,#4bb7da 28%,#238dbb 62%,#176b96 100%);touch-action:none;user-select:none}
+.ocean:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 12%,rgba(255,255,255,.65) 0 3px,transparent 4px),radial-gradient(circle at 70% 22%,rgba(255,255,255,.45) 0 2px,transparent 3px),linear-gradient(180deg,rgba(255,255,255,.15),transparent 30%);pointer-events:none}
+.seabed{position:absolute;left:0;right:0;bottom:-16px;height:58px;background:#d2ac62;border-radius:50% 50% 0 0/45% 45% 0 0;opacity:.95}
+.coral{position:absolute;bottom:22px;font-size:34px;pointer-events:none;filter:saturate(.9)}
+.item{position:absolute;display:flex;align-items:center;justify-content:center;will-change:transform;pointer-events:none;filter:drop-shadow(0 2px 1px rgba(0,0,0,.12))}
+.item.trash{font-size:34px}.item.fish{font-size:38px}.item.bonus{font-size:31px}
+.net{position:absolute;width:82px;height:58px;border:5px solid #f5f1df;border-top-width:8px;border-radius:10px 10px 34px 34px;background:repeating-linear-gradient(45deg,transparent 0 8px,rgba(255,255,255,.35) 9px 10px);transform:translate(-50%,-50%);pointer-events:none;z-index:10;filter:drop-shadow(0 3px 2px rgba(0,0,0,.22))}
+.net:before{content:"";position:absolute;width:5px;height:54px;background:#6e5534;left:50%;top:-52px;transform:translateX(-50%);border-radius:3px}
+.net.hit{animation:shake .22s linear}.net.good{animation:pop .2s ease-out}
+@keyframes shake{25%{margin-left:-8px}50%{margin-left:8px}75%{margin-left:-5px}}
+@keyframes pop{50%{scale:1.16}}
+.float{position:absolute;font-weight:900;font-size:20px;pointer-events:none;z-index:20;animation:rise .7s ease-out forwards;text-shadow:0 2px 2px rgba(0,0,0,.18)}
+@keyframes rise{to{transform:translateY(-45px);opacity:0}}
+.legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:11px 0}
+.pill{font-size:12px;border:2px solid var(--border);border-radius:999px;padding:5px 9px;background:var(--card)}
+.controls{display:flex;gap:9px;margin-top:12px}.btn{flex:1;border:0;border-radius:14px;padding:13px;font-size:16px;font-weight:800;cursor:pointer;background:var(--blue);color:#fff}.btn.secondary{background:var(--green)}
+.help{text-align:center;color:var(--muted);font-size:12px;margin:10px 0 0;line-height:1.4}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(9,45,67,.54);z-index:30;padding:18px}
+.overlay.hidden{display:none}.panel{max-width:380px;background:var(--card);color:var(--text);border-radius:22px;padding:22px;text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.2)}.panel h2{margin:0 0 8px;font-size:27px}.panel p{margin:7px 0;color:var(--muted);line-height:1.45}.stars{font-size:30px;margin:9px 0}
+@media(max-width:560px){body{padding:8px}.game{padding:13px;border-radius:18px}.stats{grid-template-columns:repeat(2,1fr)}.ocean{min-height:390px}.controls{flex-direction:column}.legend{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<div class="game">
+  <div class="top">
+    <div><h1>🌊 Limpa o Oceano</h1><p class="sub">Recolha o lixo, proteja os peixes e deixe o mar limpinho!</p></div>
+    <button class="theme" id="theme" aria-label="Alternar tema">🌙</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="score">0</b><span>PONTOS</span></div>
+    <div class="stat"><b id="phase">1</b><span>FASE</span></div>
+    <div class="stat"><b id="lives">❤️❤️❤️</b><span>VIDAS</span></div>
+    <div class="stat"><b id="record">0</b><span>RECORDE</span></div>
+  </div>
+
+  <div class="status" id="status">Clique em Iniciar e mova a rede!</div>
+
+  <div class="ocean" id="ocean">
+    <div class="seabed"></div>
+    <div class="coral" style="left:5%">🪸</div><div class="coral" style="left:42%">🌿</div><div class="coral" style="right:7%">🪸</div>
+    <div class="net" id="net"></div>
+    <div class="overlay" id="overlay">
+      <div class="panel">
+        <h2>🌊 Limpa o Oceano</h2>
+        <p>Mova a rede com o <b>mouse</b>, o <b>dedo</b> ou as <b>setas</b>.</p>
+        <p>Pegue resíduos, mas não encoste nos peixes.</p>
+        <div class="stars">🐟 ♻️ 🐠</div>
+        <button class="btn" id="overlayStart">Começar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span class="pill">🧴 Garrafa +10</span><span class="pill">🥫 Lata +15</span><span class="pill">🛍️ Sacola +20</span><span class="pill">🛞 Pneu +30</span><span class="pill">♻️ Bônus +40</span><span class="pill">🐟 Peixe: perde vida</span>
+  </div>
+  <div class="controls"><button class="btn" id="start">▶ Iniciar / Reiniciar</button><button class="btn secondary" id="pause">⏸️ Pausar</button></div>
+  <p class="help">Dica: pegue vários resíduos seguidos sem acertar peixe para ganhar bônus de sequência.</p>
+</div>
+<script>
+(()=>{
+const ocean=document.getElementById('ocean'),net=document.getElementById('net'),scoreEl=document.getElementById('score'),phaseEl=document.getElementById('phase'),livesEl=document.getElementById('lives'),recordEl=document.getElementById('record'),statusEl=document.getElementById('status'),overlay=document.getElementById('overlay'),startBtn=document.getElementById('start'),pauseBtn=document.getElementById('pause'),overlayStart=document.getElementById('overlayStart'),themeBtn=document.getElementById('theme');
+const TRASH=[
+ {emoji:'🧴',name:'garrafa',points:10,size:34},
+ {emoji:'🥫',name:'lata',points:15,size:32},
+ {emoji:'🛍️',name:'sacola',points:20,size:36},
+ {emoji:'🛞',name:'pneu',points:30,size:39}
+];
+const FISH=['🐟','🐠','🐡','🦀','🐢'];
+let objects=[],running=false,paused=false,last=0,spawnTimer=0,score=0,lives=3,phase=1,collected=0,streak=0,nextId=1,raf=0;
+let netPos={x:.5,y:.72};
+let record=Number(localStorage.getItem('limpa-oceano-record')||0);recordEl.textContent=record;
+let audio=null;
+function beep(freq=500,dur=.08,type='sine',vol=.06){try{audio=audio||new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const o=audio.createOscillator(),g=audio.createGain();o.type=type;o.frequency.value=freq;g.gain.value=vol;o.connect(g).connect(audio.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+dur);o.stop(audio.currentTime+dur)}catch(e){}}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function rect(){return ocean.getBoundingClientRect()}
+function setNet(){const r=rect();const x=netPos.x*r.width,y=netPos.y*r.height;net.style.left=x+'px';net.style.top=y+'px'}
+function updateHud(){scoreEl.textContent=score;phaseEl.textContent=phase;livesEl.textContent='❤️'.repeat(lives)+'♡'.repeat(3-lives);if(score>record){record=score;recordEl.textContent=record;localStorage.setItem('limpa-oceano-record',record)}}
+function clearObjects(){objects.forEach(o=>o.el.remove());objects=[]}
+function spawn(){if(!running||paused)return;const r=rect();const fishChance=Math.min(.18+phase*.025,.34),bonusChance=.035;const rnd=Math.random();let kind,data;
+ if(rnd<bonusChance){kind='bonus';data={emoji:'♻️',name:'bônus',points:40,size:34}}
+ else if(rnd<bonusChance+fishChance){kind='fish';data={emoji:FISH[Math.floor(Math.random()*FISH.length)],name:'peixe',points:0,size:38+Math.random()*8}}
+ else{kind='trash';data=TRASH[Math.floor(Math.random()*TRASH.length)]}
+ const el=document.createElement('div');el.className='item '+kind;el.textContent=data.emoji;el.style.fontSize=data.size+'px';ocean.appendChild(el);
+ const fromLeft=Math.random()<.5;const y=55+Math.random()*(r.height-150);const speed=(65+phase*10+Math.random()*45)*(fromLeft?1:-1);
+ const o={id:nextId++,kind,data,el,x:fromLeft?-45:r.width+45,y,vx:speed,vy:(Math.random()-.5)*10,hit:false};objects.push(o);position(o)
+}
+function position(o){o.el.style.transform=`translate(${o.x}px,${o.y}px) translate(-50%,-50%) ${o.vx<0?'scaleX(-1)':''}`}
+function floatText(x,y,text,color){const el=document.createElement('div');el.className='float';el.textContent=text;el.style.left=x+'px';el.style.top=y+'px';el.style.color=color;ocean.appendChild(el);setTimeout(()=>el.remove(),720)}
+function collide(o){const r=rect();const nx=netPos.x*r.width,ny=netPos.y*r.height;return Math.hypot(o.x-nx,o.y-ny)<47+(o.data.size||34)*.32}
+function remove(o){o.el.remove();objects=objects.filter(x=>x.id!==o.id)}
+function catchObject(o){if(o.hit)return;o.hit=true;
+ if(o.kind==='fish'){
+   lives--;streak=0;floatText(o.x,o.y,'🐟 Cuidado!','#fff');net.classList.remove('hit');void net.offsetWidth;net.classList.add('hit');beep(150,.18,'sawtooth',.08);statusEl.textContent='Ops! A rede encostou em um animal marinho.';remove(o);updateHud();if(lives<=0)endGame(false);return;
+ }
+ streak++;collected++;let gain=o.data.points;if(streak>=5){gain+=5;statusEl.textContent='🔥 Sequência '+streak+'! Bônus +5';}else statusEl.textContent='Boa! Você recolheu '+o.data.name+'.';score+=gain;floatText(o.x,o.y,'+'+gain,'#fff');net.classList.remove('good');void net.offsetWidth;net.classList.add('good');beep(o.kind==='bonus'?880:620,.08,'sine',.07);remove(o);updateHud();
+ const newPhase=Math.min(8,1+Math.floor(collected/10));if(newPhase>phase){phase=newPhase;statusEl.textContent='🌟 Fase '+phase+'! O oceano ficou mais movimentado.';beep(760,.18,'triangle',.08);updateHud()}
+ if(collected>=60)endGame(true)
+}
+function step(ts){if(!running)return;const dt=Math.min((ts-last)/1000,.035)||0;last=ts;if(!paused){spawnTimer-=dt;if(spawnTimer<=0){spawn();spawnTimer=Math.max(.42,1.15-phase*.07)+Math.random()*.45}const r=rect();for(const o of [...objects]){o.x+=o.vx*dt;o.y+=o.vy*dt;position(o);if(collide(o))catchObject(o);else if((o.vx>0&&o.x>r.width+70)||(o.vx<0&&o.x<-70))remove(o)}}raf=requestAnimationFrame(step)}
+function startGame(){cancelAnimationFrame(raf);clearObjects();score=0;lives=3;phase=1;collected=0;streak=0;spawnTimer=.2;running=true;paused=false;last=performance.now();netPos={x:.5,y:.72};setNet();overlay.classList.add('hidden');pauseBtn.textContent='⏸️ Pausar';statusEl.textContent='Recolha o lixo e deixe os peixes passarem!';updateHud();beep(520,.12,'triangle',.06);raf=requestAnimationFrame(step)}
+function endGame(win){running=false;cancelAnimationFrame(raf);clearObjects();overlay.classList.remove('hidden');overlay.querySelector('.panel').innerHTML=`<h2>${win?'🏆 Oceano limpo!':'🌊 Fim da rodada'}</h2><p>Você fez <b>${score} pontos</b> e recolheu <b>${collected} resíduos</b>.</p><div class="stars">${win?'🌟🌟🌟':'🐠 ♻️ 🐟'}</div><button class="btn" id="again">Jogar novamente</button>`;document.getElementById('again').onclick=startGame;statusEl.textContent=win?'Parabéns! Você completou a missão.':'Tente novamente e proteja os animais.'}
+function moveFromPointer(e){if(!running||paused)return;const r=rect();netPos.x=clamp((e.clientX-r.left)/r.width,.06,.94);netPos.y=clamp((e.clientY-r.top)/r.height,.18,.90);setNet()}
+ocean.addEventListener('pointerdown',e=>{if(!running||paused)return;e.preventDefault();ocean.setPointerCapture?.(e.pointerId);moveFromPointer(e)});ocean.addEventListener('pointermove',e=>{if(e.buttons||e.pointerType==='touch')moveFromPointer(e)});
+window.addEventListener('keydown',e=>{if(!running||paused)return;const step=.045;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))e.preventDefault();if(e.key==='ArrowLeft')netPos.x-=step;if(e.key==='ArrowRight')netPos.x+=step;if(e.key==='ArrowUp')netPos.y-=step;if(e.key==='ArrowDown')netPos.y+=step;netPos.x=clamp(netPos.x,.06,.94);netPos.y=clamp(netPos.y,.18,.90);setNet()});
+startBtn.onclick=startGame;overlayStart.onclick=startGame;pauseBtn.onclick=()=>{if(!running)return;paused=!paused;pauseBtn.textContent=paused?'▶ Continuar':'⏸️ Pausar';statusEl.textContent=paused?'Jogo pausado.':'De volta à limpeza!';last=performance.now()};
+function applyTheme(t){document.documentElement.dataset.theme=t;themeBtn.textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('limpa-oceano-theme',t)}applyTheme(localStorage.getItem('limpa-oceano-theme')||'light');themeBtn.onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+window.addEventListener('resize',setNet);setNet();updateHud();
+})();
+</script>
+</body>
+</html>
