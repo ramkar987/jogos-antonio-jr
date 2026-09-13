@@ -6,5 +6,13 @@
     "categories": ["Simulação", "Coordenação", "Atenção"],
     "description": "Escolha as ferramentas certas, cuide dos dentes e deixe cada paciente com um sorriso brilhando.",
     "source": "Coleção original"
+  },
+  {
+    "title": "Limpa o Oceano",
+    "file": "jogos/limpa-o-oceano.html",
+    "icon": "🌊",
+    "categories": ["Ação", "Coordenação", "Educação"],
+    "description": "Recolha garrafas, latas, sacolas e pneus sem encostar nos peixes e outros animais marinhos.",
+    "source": "Coleção original"
   }
 ]
