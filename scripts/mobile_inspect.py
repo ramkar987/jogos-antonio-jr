@@ -22,14 +22,18 @@ for path in sorted(paths,key=lambda p:p.name):
     if not re.search(r'keydown|keyup|Arrow(?:Up|Down|Left|Right)|Ctrl|Control',html,re.I): continue
     lines=html.splitlines()
     hits=[]
-    for i,line in enumerate(lines):
-        if re.search(r'keydown|keyup|Arrow(?:Up|Down|Left|Right)|Ctrl|Control',line,re.I):
-            a=max(0,i-3); b=min(len(lines),i+9)
-            snippet='\n'.join(lines[a:b])
-            if snippet not in hits: hits.append(snippet)
-        if len(hits)>=3: break
+    # Primeiro os handlers reais; depois menções de teclas em UI/ajuda.
+    patterns=[r'keydown|keyup', r'Arrow(?:Up|Down|Left|Right)|Ctrl|Control']
+    for pat in patterns:
+        for i,line in enumerate(lines):
+            if re.search(pat,line,re.I):
+                a=max(0,i-4); b=min(len(lines),i+12)
+                snippet='\n'.join(lines[a:b])
+                if snippet not in hits: hits.append(snippet)
+            if len(hits)>=4: break
+        if len(hits)>=4: break
     out += [f'## {title(html,path.stem)}', '', f'`{path.relative_to(ROOT)}`', '']
     for s in hits:
-        out += ['```html', s[:3500], '```', '']
+        out += ['```html', s[:4200], '```', '']
 (ROOT/'MOBILE_KEYBOARD_SNIPPETS.md').write_text('\n'.join(out)+'\n',encoding='utf-8')
 print('Relatório de trechos criado.')
