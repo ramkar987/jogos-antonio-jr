@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jogo da Velha</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --cell-bg: #FAF8F2;
+    --cell-border: #E1DDCF;
+    --cell-hover: #F0ECDF;
+    --you: #378ADD;
+    --cpu: #E24B4A;
+    --win-line: #639922;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --cell-bg: #322F28;
+    --cell-border: #47443B;
+    --cell-hover: #3C392F;
+    --you: #5AA1E8;
+    --cpu: #F09595;
+    --win-line: #7BAF3A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .score-you { color: var(--you); }
+  .score-cpu { color: var(--cpu); }
+  .score-draw { color: var(--text-secondary); }
+
+  .status {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 24px;
+    margin-bottom: 16px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 280px;
+    margin: 0 auto 20px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    background: var(--cell-bg);
+    border: 2px solid var(--cell-border);
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    transition: background .15s;
+  }
+  .cell:active { background: var(--cell-hover); }
+  .cell svg { width: 62%; height: 62%; }
+  .cell.win {
+    box-shadow: inset 0 0 0 4px var(--win-line);
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Jogo da Velha</h1>
+  <p class="subtitle">Você é o X, o computador é o O</p>
+
+  <div class="scoreboard">
+    <span class="score-you" id="score-you">Você: 0</span>
+    <span class="score-draw" id="score-draw">Empates: 0</span>
+    <span class="score-cpu" id="score-cpu">Computador: 0</span>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('velha-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('velha-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const scoreYouEl = document.getElementById('score-you');
+  const scoreCpuEl = document.getElementById('score-cpu');
+  const scoreDrawEl = document.getElementById('score-draw');
+
+  const X_SVG = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><line x1="20" y1="20" x2="80" y2="80" stroke="var(--you)" stroke-width="14" stroke-linecap="round"/><line x1="80" y1="20" x2="20" y2="80" stroke="var(--you)" stroke-width="14" stroke-linecap="round"/></svg>';
+  const O_SVG = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="32" fill="none" stroke="var(--cpu)" stroke-width="14"/></svg>';
+
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  let cells = Array(9).fill(null); // 'X' | 'O' | null
+  let gameActive = false;
+  let busy = false;
+  let scores = { you: 0, cpu: 0, draw: 0 };
+
+  function renderBoard(winLine){
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (winLine && winLine.includes(i) ? ' win' : '');
+      if (cells[i] === 'X') cell.innerHTML = X_SVG;
+      else if (cells[i] === 'O') cell.innerHTML = O_SVG;
+      cell.addEventListener('click', () => handleCellClick(i));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function updateScoreboard(){
+    scoreYouEl.textContent = 'Você: ' + scores.you;
+    scoreCpuEl.textContent = 'Computador: ' + scores.cpu;
+    scoreDrawEl.textContent = 'Empates: ' + scores.draw;
+  }
+
+  function checkWinner(board){
+    for (const line of WIN_LINES){
+      const [a,b,c] = line;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]){
+        return { winner: board[a], line };
+      }
+    }
+    if (board.every(c => c !== null)) return { winner: 'draw', line: null };
+    return null;
+  }
+
+  function handleCellClick(i){
+    if (!gameActive || busy || cells[i] !== null) return;
+    cells[i] = 'X';
+    renderBoard();
+
+    const result = checkWinner(cells);
+    if (result){
+      finishGame(result);
+      return;
+    }
+
+    busy = true;
+    statusEl.textContent = 'Vez do computador...';
+    setTimeout(computerMove, 550);
+  }
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function findWinningMove(board, player){
+    for (const line of WIN_LINES){
+      const values = line.map(i => board[i]);
+      const countP = values.filter(v => v === player).length;
+      const countEmpty = values.filter(v => v === null).length;
+      if (countP === 2 && countEmpty === 1){
+        const idx = line[values.indexOf(null)];
+        return idx;
+      }
+    }
+    return -1;
+  }
+
+  function computerMove(){
+    if (!gameActive) return;
+    const empties = cells.map((v,i) => v === null ? i : -1).filter(i => i !== -1);
+
+    // Dificuldade fácil: o computador "erra de propósito" boa parte do tempo,
+    // ignorando a jogada ótima e escolhendo aleatoriamente.
+    const playOptimally = Math.random() < 0.35; // só 35% das vezes joga bem
+
+    let choice = -1;
+
+    if (playOptimally){
+      // 1) tenta vencer
+      choice = findWinningMove(cells, 'O');
+      // 2) senão, bloqueia o jogador
+      if (choice === -1) choice = findWinningMove(cells, 'X');
+      // 3) senão, centro se livre
+      if (choice === -1 && cells[4] === null) choice = 4;
+    }
+
+    // fallback aleatório (maior parte das vezes, incluindo quando não joga ótimo)
+    if (choice === -1){
+      choice = empties[randInt(0, empties.length - 1)];
+    }
+
+    cells[choice] = 'O';
+    renderBoard();
+
+    const result = checkWinner(cells);
+    if (result){
+      finishGame(result);
+      return;
+    }
+
+    busy = false;
+    statusEl.textContent = 'Sua vez!';
+  }
+
+  function finishGame(result){
+    gameActive = false;
+    busy = false;
+    renderBoard(result.line);
+
+    if (result.winner === 'X'){
+      scores.you++;
+      statusEl.textContent = 'Você ganhou! 🎉';
+    } else if (result.winner === 'O'){
+      scores.cpu++;
+      statusEl.textContent = 'O computador ganhou desta vez!';
+    } else {
+      scores.draw++;
+      statusEl.textContent = 'Empate!';
+    }
+    updateScoreboard();
+    startBtn.textContent = 'Jogar de novo';
+  }
+
+  function startGame(){
+    cells = Array(9).fill(null);
+    gameActive = true;
+    busy = false;
+    statusEl.textContent = 'Sua vez! Toque numa casa';
+    startBtn.textContent = 'Reiniciar';
+    renderBoard();
+  }
+
+  startBtn.addEventListener('click', startGame);
+
+  // desenho inicial estático
+  updateScoreboard();
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>

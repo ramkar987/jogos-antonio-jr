@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Toupeira Maluca</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --dirt: #8C6636;
+    --dirt-edge: #6B4A28;
+    --hole: #40290F;
+    --mole-body: #A6762F;
+    --mole-belly: #E8CFA0;
+    --timer-track: #E1DDCF;
+    --timer-fill: #639922;
+    --timer-fill-warn: #EF9F27;
+    --timer-fill-danger: #E24B4A;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --dirt: #5C4322;
+    --dirt-edge: #3C2C16;
+    --hole: #1C120A;
+    --mole-body: #8A6228;
+    --mole-belly: #D4B888;
+    --timer-track: #47443B;
+    --timer-fill: #7BAF3A;
+    --timer-fill-warn: #F0B24A;
+    --timer-fill-danger: #F09595;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .difficulty-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .diff-btn {
+    padding: 10px 6px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 12px;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .diff-btn:active { transform: scale(0.96); }
+  .diff-btn.selected {
+    border-color: var(--title);
+    color: var(--title);
+  }
+  .diff-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .timer-track {
+    width: 100%;
+    height: 10px;
+    background: var(--timer-track);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .timer-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--timer-fill);
+    border-radius: 6px;
+    transition: width .1s linear, background .3s;
+  }
+
+  .status {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 24px;
+    margin-bottom: 6px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    max-width: 320px;
+    margin: 0 auto 18px;
+  }
+  .hole-tile {
+    aspect-ratio: 1 / 1;
+    background: var(--dirt);
+    border: 3px solid var(--dirt-edge);
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .hole-tile::before {
+    content: "";
+    position: absolute;
+    inset: 18%;
+    border-radius: 50%;
+    background: var(--hole);
+  }
+  .mole {
+    position: absolute;
+    left: 50%;
+    bottom: -100%;
+    width: 74%;
+    height: 74%;
+    transform: translateX(-50%);
+    transition: bottom 0.15s ease-out;
+  }
+  .hole-tile.up .mole {
+    bottom: 6%;
+  }
+  .hole-tile.whacked .mole {
+    bottom: -100%;
+    transition: bottom 0.1s ease-in;
+  }
+  .mole svg { width: 100%; height: 100%; display: block; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Toupeira Maluca</h1>
+  <p class="subtitle">Toque nas toupeiras antes que elas fujam!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Pontos</div>
+      <div class="stat-value" id="score">0</div>
+    </div>
+    <div>
+      <div class="stat-label">Melhor</div>
+      <div class="stat-value" id="best">0</div>
+    </div>
+  </div>
+
+  <div class="difficulty-row" id="difficulty-row">
+    <button class="diff-btn" id="diff-easy" data-level="easy">🐢 Fácil</button>
+    <button class="diff-btn selected" id="diff-medium" data-level="medium">🐇 Médio</button>
+    <button class="diff-btn" id="diff-hard" data-level="hard">🐆 Difícil</button>
+  </div>
+
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill"></div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('toupeira-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('toupeira-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+
+  function playBoing(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(180, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(520, c.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.22);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.22);
+  }
+
+  function playPopDown(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(300, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, c.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.18);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.18);
+  }
+
+  const MOLE_SVG = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' +
+    '<ellipse cx="50" cy="55" rx="34" ry="30" fill="var(--mole-body)"/>' +
+    '<ellipse cx="50" cy="66" rx="20" ry="14" fill="var(--mole-belly)"/>' +
+    '<ellipse cx="30" cy="35" rx="8" ry="10" fill="var(--mole-body)"/>' +
+    '<ellipse cx="70" cy="35" rx="8" ry="10" fill="var(--mole-body)"/>' +
+    '<circle cx="38" cy="48" r="4.5" fill="#2C2C2A"/>' +
+    '<circle cx="62" cy="48" r="4.5" fill="#2C2C2A"/>' +
+    '<ellipse cx="50" cy="58" rx="6" ry="4" fill="#2C2C2A"/>' +
+    '<circle cx="30" cy="56" r="1.6" fill="#2C2C2A"/><circle cx="26" cy="60" r="1.6" fill="#2C2C2A"/>' +
+    '<circle cx="70" cy="56" r="1.6" fill="#2C2C2A"/><circle cx="74" cy="60" r="1.6" fill="#2C2C2A"/>' +
+    '</svg>';
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const timerFill = document.getElementById('timer-fill');
+  const diffEasyBtn = document.getElementById('diff-easy');
+  const diffMediumBtn = document.getElementById('diff-medium');
+  const diffHardBtn = document.getElementById('diff-hard');
+
+  const DIFFICULTIES = {
+    easy:   { visibleMin: 1000, visibleMax: 1700, spawnMin: 750, spawnMax: 1150 },
+    medium: { visibleMin: 700,  visibleMax: 1300, spawnMin: 500, spawnMax: 900  },
+    hard:   { visibleMin: 450,  visibleMax: 850,  spawnMin: 300, spawnMax: 600  }
+  };
+  let difficulty = 'medium';
+
+  function selectDifficulty(level){
+    if (gameActive) return;
+    difficulty = level;
+    [diffEasyBtn, diffMediumBtn, diffHardBtn].forEach(btn => btn.classList.remove('selected'));
+    const map = { easy: diffEasyBtn, medium: diffMediumBtn, hard: diffHardBtn };
+    map[level].classList.add('selected');
+  }
+  diffEasyBtn.addEventListener('click', () => selectDifficulty('easy'));
+  diffMediumBtn.addEventListener('click', () => selectDifficulty('medium'));
+  diffHardBtn.addEventListener('click', () => selectDifficulty('hard'));
+
+  const HOLES = 9;
+  const ROUND_SECONDS = 30;
+
+  let holeEls = [];
+  let holeStates = []; // 'down' | 'up' | 'whacked'
+  let holeTimers = []; // timeout ids
+  let score = 0;
+  let best = 0;
+  let timeLeft = ROUND_SECONDS;
+  let gameActive = false;
+  let roundInterval = null;
+  let spawnTimeout = null;
+
+  try { best = parseInt(localStorage.getItem('toupeira-best') || '0', 10) || 0; } catch(e) {}
+  bestEl.textContent = best;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function buildBoard(){
+    boardEl.innerHTML = '';
+    holeEls = [];
+    holeStates = Array(HOLES).fill('down');
+    holeTimers = Array(HOLES).fill(null);
+
+    for (let i = 0; i < HOLES; i++){
+      const tile = document.createElement('div');
+      tile.className = 'hole-tile';
+      const mole = document.createElement('div');
+      mole.className = 'mole';
+      mole.innerHTML = MOLE_SVG;
+      tile.appendChild(mole);
+      tile.addEventListener('click', () => handleWhack(i));
+      boardEl.appendChild(tile);
+      holeEls.push(tile);
+    }
+  }
+
+  function updateTimerBar(){
+    const pct = Math.max(0, (timeLeft / ROUND_SECONDS) * 100);
+    timerFill.style.width = pct + '%';
+    if (pct < 20) timerFill.style.background = 'var(--timer-fill-danger)';
+    else if (pct < 50) timerFill.style.background = 'var(--timer-fill-warn)';
+    else timerFill.style.background = 'var(--timer-fill)';
+  }
+
+  function popUp(i){
+    if (!gameActive || holeStates[i] === 'up') return;
+    holeStates[i] = 'up';
+    holeEls[i].classList.remove('whacked');
+    holeEls[i].classList.add('up');
+
+    const cfg = DIFFICULTIES[difficulty];
+    const visibleTime = rand(cfg.visibleMin, cfg.visibleMax);
+    holeTimers[i] = setTimeout(() => {
+      if (holeStates[i] === 'up'){
+        holeStates[i] = 'down';
+        holeEls[i].classList.remove('up');
+      }
+    }, visibleTime);
+  }
+
+  function handleWhack(i){
+    if (!gameActive) return;
+    if (holeStates[i] !== 'up') return;
+
+    clearTimeout(holeTimers[i]);
+    holeStates[i] = 'down';
+    holeEls[i].classList.remove('up');
+    holeEls[i].classList.add('whacked');
+    setTimeout(() => holeEls[i].classList.remove('whacked'), 200);
+
+    score++;
+    scoreEl.textContent = score;
+    playBoing();
+  }
+
+  function scheduleSpawns(){
+    if (!gameActive) return;
+    const freeHoles = holeStates.map((s,i) => s === 'down' ? i : -1).filter(i => i !== -1);
+    if (freeHoles.length > 0){
+      const idx = freeHoles[randInt(0, freeHoles.length - 1)];
+      popUp(idx);
+      playPopDown();
+    }
+    const cfg = DIFFICULTIES[difficulty];
+    const nextDelay = rand(cfg.spawnMin, cfg.spawnMax);
+    spawnTimeout = setTimeout(scheduleSpawns, nextDelay);
+  }
+
+  function startGame(){
+    score = 0;
+    scoreEl.textContent = '0';
+    timeLeft = ROUND_SECONDS;
+    updateTimerBar();
+    gameActive = true;
+    statusEl.textContent = 'Vai! Toque nas toupeiras!';
+    startBtn.textContent = 'Jogando...';
+    startBtn.disabled = true;
+    [diffEasyBtn, diffMediumBtn, diffHardBtn].forEach(btn => btn.disabled = true);
+
+    buildBoard();
+
+    clearInterval(roundInterval);
+    roundInterval = setInterval(() => {
+      timeLeft -= 0.1;
+      if (timeLeft <= 0){
+        timeLeft = 0;
+        updateTimerBar();
+        endGame();
+        return;
+      }
+      updateTimerBar();
+    }, 100);
+
+    scheduleSpawns();
+  }
+
+  function endGame(){
+    gameActive = false;
+    clearInterval(roundInterval);
+    clearTimeout(spawnTimeout);
+    holeTimers.forEach(t => clearTimeout(t));
+    holeStates.forEach((s, i) => { holeEls[i].classList.remove('up'); });
+
+    if (score > best){
+      best = score;
+      try { localStorage.setItem('toupeira-best', String(best)); } catch(e) {}
+      bestEl.textContent = best;
+      statusEl.textContent = 'Novo recorde! Você fez ' + score + ' pontos! 🎉';
+    } else {
+      statusEl.textContent = 'Tempo esgotado! Você fez ' + score + ' pontos';
+    }
+
+    startBtn.textContent = 'Jogar de novo';
+    startBtn.disabled = false;
+    [diffEasyBtn, diffMediumBtn, diffHardBtn].forEach(btn => btn.disabled = false);
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    startGame();
+  });
+
+  // desenho inicial estático
+  buildBoard();
+  updateTimerBar();
+})();
+</script>
+
+</body>
+</html>

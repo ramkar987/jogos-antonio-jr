@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jogo da Forca</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --input-border: #E1DDCF;
+    --input-focus: #378ADD;
+    --gallows-stroke: #2C2C2A;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --correct-bg: #97C459;
+    --correct-border: #3B6D11;
+    --correct-text: #173404;
+    --wrong-bg: #F09595;
+    --wrong-border: #A32D2D;
+    --wrong-text: #501313;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --input-border: #47443B;
+    --input-focus: #5AA1E8;
+    --gallows-stroke: #F2F0E8;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --correct-bg: #3B6D11;
+    --correct-border: #639922;
+    --correct-text: #DCEFC0;
+    --wrong-bg: #72241E;
+    --wrong-border: #A32D2D;
+    --wrong-text: #F7C1C1;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 24px 22px 28px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 18px;
+  }
+
+  /* Tela de configuração */
+  .setup { display: flex; flex-direction: column; gap: 12px; }
+  .hint { font-size: 13px; color: var(--text-secondary); margin: 0 0 4px; }
+
+  /* Boneco */
+  .gallows-wrap { margin: 0 auto 14px; width: 160px; }
+  .gallows-wrap svg { width: 100%; height: auto; display: block; }
+
+  .status {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-height: 22px;
+    margin-bottom: 4px;
+  }
+  .tries {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  /* Palavra */
+  .word {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .slot {
+    width: 32px;
+    height: 40px;
+    border-bottom: 3px solid var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+  }
+  .slot.space { border-bottom: none; width: 18px; }
+
+  /* Teclado */
+  .keyboard {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .key {
+    height: 40px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 8px;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background .15s, color .15s, border-color .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .key:active { transform: scale(0.92); }
+  .key.correct {
+    background: var(--correct-bg);
+    border-color: var(--correct-border);
+    color: var(--correct-text);
+  }
+  .key.wrong {
+    background: var(--wrong-bg);
+    border-color: var(--wrong-border);
+    color: var(--wrong-text);
+  }
+  .key.key-pressed { transform: scale(0.92); }
+  .key:disabled { cursor: default; }
+
+  /* Histórico */
+  .history {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 18px;
+    min-height: 18px;
+  }
+  .history b { color: var(--text-secondary); }
+
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Jogo da Forca</h1>
+  <p class="subtitle" id="subtitle">Adivinhe a palavra secreta sorteada pelo computador</p>
+
+  <!-- Tela 1: início -->
+  <div class="setup" id="setup">
+    <p class="hint">O computador sorteia uma palavra secreta pra você adivinhar!</p>
+    <button class="start-btn" id="begin-btn">Iniciar jogo</button>
+  </div>
+
+  <!-- Tela 2: jogo -->
+  <div id="game" class="hidden">
+    <div class="gallows-wrap">
+      <svg id="gallows" viewBox="0 0 160 180">
+        <!-- base -->
+        <line x1="20" y1="170" x2="100" y2="170" stroke="var(--gallows-stroke)" stroke-width="5" stroke-linecap="round"/>
+        <!-- poste vertical -->
+        <line x1="40" y1="170" x2="40" y2="15" stroke="var(--gallows-stroke)" stroke-width="5" stroke-linecap="round"/>
+        <!-- viga horizontal -->
+        <line x1="40" y1="15" x2="110" y2="15" stroke="var(--gallows-stroke)" stroke-width="5" stroke-linecap="round"/>
+        <!-- corda -->
+        <line x1="110" y1="15" x2="110" y2="35" stroke="var(--gallows-stroke)" stroke-width="4" stroke-linecap="round"/>
+
+        <!-- partes do boneco, ocultas até errar -->
+        <circle id="p-head" cx="110" cy="48" r="13" fill="none" stroke="#E24B4A" stroke-width="4" class="hidden"/>
+        <line id="p-body" x1="110" y1="61" x2="110" y2="105" stroke="#E24B4A" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line id="p-arm-l" x1="110" y1="72" x2="92" y2="95" stroke="#E24B4A" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line id="p-arm-r" x1="110" y1="72" x2="128" y2="95" stroke="#E24B4A" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line id="p-leg-l" x1="110" y1="105" x2="94" y2="140" stroke="#E24B4A" stroke-width="4" stroke-linecap="round" class="hidden"/>
+        <line id="p-leg-r" x1="110" y1="105" x2="126" y2="140" stroke="#E24B4A" stroke-width="4" stroke-linecap="round" class="hidden"/>
+      </svg>
+    </div>
+
+    <div class="status" id="status">Adivinhe a palavra</div>
+    <div class="tries" id="tries">6 tentativas restantes</div>
+
+    <div class="word" id="word-display"></div>
+
+    <div class="keyboard" id="keyboard"></div>
+
+    <div class="history" id="history"></div>
+
+    <button class="start-btn hidden" id="restart">Jogar de novo</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('forca-theme', theme); } catch(e) {}
+  }
+  let savedTheme = 'light';
+  try { savedTheme = localStorage.getItem('forca-theme') || 'light'; } catch(e) {}
+  if (savedTheme === 'dark' ||
+      (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme);
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const setupEl = document.getElementById('setup');
+  const gameEl = document.getElementById('game');
+  const subtitleEl = document.getElementById('subtitle');
+  const beginBtn = document.getElementById('begin-btn');
+  const wordDisplay = document.getElementById('word-display');
+  const keyboardEl = document.getElementById('keyboard');
+  const statusEl = document.getElementById('status');
+  const triesEl = document.getElementById('tries');
+  const historyEl = document.getElementById('history');
+  const restartBtn = document.getElementById('restart');
+
+  const parts = ['p-head','p-body','p-arm-l','p-arm-r','p-leg-l','p-leg-r'];
+  const MAX_ERRORS = parts.length;
+
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+  const CATEGORIES = [
+    { key: 'animais', icon: '🐶', label: 'Animais',
+      words: ['GATO','CACHORRO','LEAO','ELEFANTE','GIRAFA','MACACO','COELHO','TARTARUGA','PATO','CAVALO','PEIXE','URSO','SAPO','GALINHA','TIGRE'] },
+    { key: 'cores', icon: '🎨', label: 'Cores',
+      words: ['AZUL','VERMELHO','AMARELO','VERDE','ROXO','ROSA','LARANJA','PRETO','BRANCO','MARROM','CINZA'] },
+    { key: 'comidas', icon: '🍎', label: 'Comidas',
+      words: ['BANANA','MACA','PIZZA','ARROZ','FEIJAO','SORVETE','BOLO','QUEIJO','LARANJA','MORANGO','CHOCOLATE','PAO','OVO','MELANCIA'] },
+    { key: 'brinquedos', icon: '🧸', label: 'Brinquedos',
+      words: ['BOLA','PIPA','BONECA','URSINHO','CARRINHO','QUEBRACABECA','PATINETE','BALAO','IOIO','PIAO'] },
+    { key: 'natureza', icon: '🌳', label: 'Natureza',
+      words: ['SOL','LUA','ESTRELA','ARVORE','FLOR','CHUVA','NUVEM','MONTANHA','RIO','PRAIA','FOLHA','VENTO'] },
+    { key: 'casa', icon: '🏠', label: 'Casa',
+      words: ['CAMA','MESA','CADEIRA','JANELA','PORTA','SOFA','TELEVISAO','GELADEIRA','CHUVEIRO','ESCOVA'] }
+  ];
+
+  let secretWord = '';
+  let currentCategory = null;
+  let revealed = [];
+  let errors = 0;
+  let usedLetters = [];
+  let gameActive = false;
+
+  function pickRandomWord(){
+    const cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+    const word = cat.words[Math.floor(Math.random() * cat.words.length)];
+    currentCategory = cat;
+    startGame(word);
+  }
+
+  function normalizeLetter(ch){
+    return ch.toUpperCase()
+      .replace(/[ÁÀÂÃ]/g, 'A')
+      .replace(/[ÉÊ]/g, 'E')
+      .replace(/[ÍÎ]/g, 'I')
+      .replace(/[ÓÔÕ]/g, 'O')
+      .replace(/[ÚÛ]/g, 'U')
+      .replace(/Ç/g, 'C');
+  }
+
+  function buildWordDisplay(){
+    wordDisplay.innerHTML = '';
+    for (let i = 0; i < secretWord.length; i++){
+      const ch = secretWord[i];
+      const slot = document.createElement('div');
+      if (ch === ' '){
+        slot.className = 'slot space';
+      } else {
+        slot.className = 'slot';
+        slot.textContent = revealed[i] ? ch : '';
+      }
+      wordDisplay.appendChild(slot);
+    }
+  }
+
+  function buildKeyboard(){
+    keyboardEl.innerHTML = '';
+    ALPHABET.forEach(letter => {
+      const b = document.createElement('button');
+      b.className = 'key';
+      b.textContent = letter;
+      b.dataset.letter = letter;
+      b.addEventListener('click', () => handleGuess(letter));
+      keyboardEl.appendChild(b);
+    });
+  }
+
+  function updateHistory(){
+    if (usedLetters.length === 0){
+      historyEl.innerHTML = '';
+      return;
+    }
+    historyEl.innerHTML = '<b>Letras usadas:</b> ' + usedLetters.join(', ');
+  }
+
+  function updateTries(){
+    const left = MAX_ERRORS - errors;
+    triesEl.textContent = left > 0 ? (left + ' tentativa' + (left === 1 ? '' : 's') + ' restante' + (left === 1 ? '' : 's')) : 'Sem tentativas';
+  }
+
+  function showHangmanPart(){
+    if (errors > 0 && errors <= parts.length){
+      document.getElementById(parts[errors - 1]).classList.remove('hidden');
+    }
+  }
+
+  function checkWin(){
+    return secretWord.split('').every((ch, i) => ch === ' ' || revealed[i]);
+  }
+
+  function endGame(won){
+    gameActive = false;
+    keyboardEl.querySelectorAll('.key').forEach(k => k.disabled = true);
+    if (won){
+      statusEl.textContent = 'Parabéns! Você acertou a palavra!';
+    } else {
+      revealed = revealed.map(() => true);
+      buildWordDisplay();
+      statusEl.textContent = 'Não foi dessa vez! A palavra era: ' + secretWord;
+    }
+    restartBtn.classList.remove('hidden');
+  }
+
+  function handleGuess(letter){
+    if (!gameActive) return;
+    const key = keyboardEl.querySelector('[data-letter="' + letter + '"]');
+    if (key.disabled) return;
+    key.disabled = true;
+    usedLetters.push(letter);
+    updateHistory();
+
+    const normalizedSecret = secretWord.split('').map(normalizeLetter);
+    let found = false;
+    for (let i = 0; i < normalizedSecret.length; i++){
+      if (normalizedSecret[i] === letter){
+        revealed[i] = true;
+        found = true;
+      }
+    }
+
+    if (found){
+      key.classList.add('correct');
+      buildWordDisplay();
+      if (checkWin()){
+        endGame(true);
+        return;
+      }
+      statusEl.textContent = 'Boa! Continue tentando';
+    } else {
+      key.classList.add('wrong');
+      errors++;
+      showHangmanPart();
+      updateTries();
+      if (errors >= MAX_ERRORS){
+        endGame(false);
+        return;
+      }
+      statusEl.textContent = 'Essa não! Tente outra letra';
+    }
+  }
+
+  function resetHangman(){
+    parts.forEach(id => document.getElementById(id).classList.add('hidden'));
+  }
+
+  function startGame(word){
+    secretWord = word;
+    revealed = word.split('').map(ch => ch === ' ');
+    errors = 0;
+    usedLetters = [];
+    gameActive = true;
+
+    resetHangman();
+    buildWordDisplay();
+    buildKeyboard();
+    updateHistory();
+    updateTries();
+    statusEl.textContent = 'Adivinhe a palavra';
+    restartBtn.classList.add('hidden');
+
+    setupEl.classList.add('hidden');
+    gameEl.classList.remove('hidden');
+  }
+
+  beginBtn.addEventListener('click', pickRandomWord);
+
+  restartBtn.addEventListener('click', () => {
+    gameEl.classList.add('hidden');
+    setupEl.classList.remove('hidden');
+  });
+
+  // Suporte a teclado físico durante o jogo
+  document.addEventListener('keydown', (e) => {
+    if (!gameActive) return;
+    if (gameEl.classList.contains('hidden')) return;
+    const letter = normalizeLetter(e.key || '');
+    if (letter.length !== 1 || letter < 'A' || letter > 'Z') return;
+    const key = keyboardEl.querySelector('[data-letter="' + letter + '"]');
+    if (!key || key.disabled) return;
+    key.classList.add('key-pressed');
+    setTimeout(() => key.classList.remove('key-pressed'), 120);
+    handleGuess(letter);
+  });
+})();
+</script>
+
+</body>
+</html>

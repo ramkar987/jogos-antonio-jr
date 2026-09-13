@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Passarinho Faminto</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --field-top: #AEDFF7;
+    --field-bottom: #C7E8A8;
+    --field-border: #9EC97A;
+    --seed: #EF9F27;
+    --seed-edge: #B5730E;
+    --bird-body: #378ADD;
+    --bird-belly: #F4E3B2;
+    --worm-body: #D8493A;
+    --worm-body-edge: #993C1D;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --field-top: #16233A;
+    --field-bottom: #223018;
+    --field-border: #3E5A28;
+    --seed: #D89530;
+    --seed-edge: #B5730E;
+    --bird-body: #5AA1E8;
+    --bird-belly: #E8D6A0;
+    --worm-body: #D8493A;
+    --worm-body-edge: #8C2E22;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    z-index: 6;
+  }
+  h1 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .status {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 20px;
+    margin-bottom: 10px;
+  }
+
+  .field-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1.15;
+    max-height: 62vh;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(var(--field-top), var(--field-bottom));
+    border: 2px solid var(--field-border);
+    touch-action: none;
+  }
+
+  .game-obj {
+    position: absolute;
+    pointer-events: none;
+  }
+  .game-obj svg { width: 100%; height: 100%; display: block; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Passarinho Faminto</h1>
+  <p class="subtitle">Arraste o passarinho para comer as sementes antes das minhocas!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">🐦 Você</div>
+      <div class="stat-value" id="bird-score">0</div>
+    </div>
+    <div>
+      <div class="stat-label">🐛 Minhocas</div>
+      <div class="stat-value" id="worm-score">0</div>
+    </div>
+    <div>
+      <div class="stat-label">Fase</div>
+      <div class="stat-value" id="level">1</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="field-wrap" id="field-wrap"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('passarinho-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('passarinho-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+  function playPeck(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(700, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, c.currentTime+0.08);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.22, c.currentTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.1);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.1);
+  }
+  function playWormEat(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(180, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.12, c.currentTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.12);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.12);
+  }
+  function playWin(){
+    const c = getActx();
+    [0,4,7,12].forEach((semi,i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 300 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i*0.08;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.22, t0+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0+0.22);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0+0.22);
+    });
+  }
+  function playLose(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(90, c.currentTime+0.4);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.25, c.currentTime+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.5);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.5);
+  }
+
+  const fieldWrap = document.getElementById('field-wrap');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const birdScoreEl = document.getElementById('bird-score');
+  const wormScoreEl = document.getElementById('worm-score');
+  const levelEl = document.getElementById('level');
+
+  const BIRD_SVG =
+    '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="30" ry="26" fill="var(--bird-body)"/>' +
+    '<ellipse cx="50" cy="66" rx="16" ry="12" fill="var(--bird-belly)"/>' +
+    '<circle cx="68" cy="42" r="4" fill="#2C2C2A"/>' +
+    '<path d="M78 50 L92 46 L78 58 Z" fill="#EF9F27"/>' +
+    '<path d="M25 45 Q10 40 15 55 Q22 52 25 45" fill="var(--bird-body)"/>' +
+    '</svg>';
+
+  const WORM_SVG =
+    '<svg viewBox="0 0 100 100"><path d="M20 70 Q30 50 45 65 Q60 80 75 60 Q85 48 80 35" stroke="var(--worm-body)" stroke-width="14" fill="none" stroke-linecap="round"/>' +
+    '<circle cx="80" cy="35" r="8" fill="var(--worm-body)"/>' +
+    '<circle cx="77" cy="32" r="1.6" fill="#2C2C2A"/><circle cx="83" cy="32" r="1.6" fill="#2C2C2A"/>' +
+    '</svg>';
+
+  const SEED_SVG =
+    '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="26" ry="34" fill="var(--seed)" stroke="var(--seed-edge)" stroke-width="4"/></svg>';
+
+  const BIRD_SIZE = 62;
+  const WORM_SIZE = 44;
+  const SEED_SIZE = 26;
+
+  let level = 1;
+  let seeds = [];
+  let worms = [];
+  let bird = { x: 0, y: 0, el: null };
+  let birdScore = 0, wormScore = 0;
+  let nextId = 1;
+  let gameActive = false;
+  let dragging = false;
+  let dragTouchId = null;
+  let rafId = null;
+  let lastTime = null;
+
+  const SEEDS_PER_ROUND = 14;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function fieldSize(){
+    const rect = fieldWrap.getBoundingClientRect();
+    return { w: rect.width, h: rect.height };
+  }
+
+  function clearField(){
+    fieldWrap.innerHTML = '';
+    seeds = [];
+    worms = [];
+  }
+
+  function createObjEl(className, size, svg){
+    const el = document.createElement('div');
+    el.className = 'game-obj ' + className;
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.innerHTML = svg;
+    fieldWrap.appendChild(el);
+    return el;
+  }
+
+  function placeEl(el, x, y, size){
+    el.style.left = (x - size/2) + 'px';
+    el.style.top = (y - size/2) + 'px';
+  }
+
+  function spawnSeeds(count){
+    const { w, h } = fieldSize();
+    for (let i = 0; i < count; i++){
+      const x = rand(SEED_SIZE, w - SEED_SIZE);
+      const y = rand(SEED_SIZE, h - SEED_SIZE);
+      const el = createObjEl('seed-el', SEED_SIZE, SEED_SVG);
+      placeEl(el, x, y, SEED_SIZE);
+      seeds.push({ id: nextId++, x, y, el });
+    }
+  }
+
+  function spawnWorms(count){
+    const { w, h } = fieldSize();
+    for (let i = 0; i < count; i++){
+      const x = rand(WORM_SIZE, w - WORM_SIZE);
+      const y = rand(WORM_SIZE, h - WORM_SIZE);
+      const el = createObjEl('worm-el', WORM_SIZE, WORM_SVG);
+      placeEl(el, x, y, WORM_SIZE);
+      const speed = 0.025 + level * 0.004;
+      worms.push({ id: nextId++, x, y, vx: rand(-1,1)*speed, vy: rand(-1,1)*speed, el, speed });
+    }
+  }
+
+  function spawnBird(){
+    const { w, h } = fieldSize();
+    bird.x = w/2;
+    bird.y = h/2;
+    bird.el = createObjEl('bird-el', BIRD_SIZE, BIRD_SVG);
+    placeEl(bird.el, bird.x, bird.y, BIRD_SIZE);
+  }
+
+  function getFieldPoint(clientX, clientY){
+    const rect = fieldWrap.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function handlePointerDown(e){
+    if (!gameActive) return;
+    let clientX, clientY;
+    if (e.type === 'touchstart'){
+      const t = e.changedTouches[0];
+      clientX = t.clientX; clientY = t.clientY;
+      dragTouchId = t.identifier;
+    } else {
+      clientX = e.clientX; clientY = e.clientY;
+    }
+    dragging = true;
+    moveBirdTo(clientX, clientY);
+    e.preventDefault();
+  }
+
+  function handlePointerMove(e){
+    if (!gameActive || !dragging) return;
+    let clientX, clientY;
+    if (e.type === 'touchmove'){
+      let t = null;
+      for (let i = 0; i < e.changedTouches.length; i++){
+        if (e.changedTouches[i].identifier === dragTouchId){ t = e.changedTouches[i]; break; }
+      }
+      if (!t) t = e.changedTouches[0];
+      if (!t) return;
+      clientX = t.clientX; clientY = t.clientY;
+    } else {
+      clientX = e.clientX; clientY = e.clientY;
+    }
+    moveBirdTo(clientX, clientY);
+    e.preventDefault();
+  }
+
+  function handlePointerUp(){
+    dragging = false;
+    dragTouchId = null;
+  }
+
+  function moveBirdTo(clientX, clientY){
+    const p = getFieldPoint(clientX, clientY);
+    const { w, h } = fieldSize();
+    bird.x = Math.max(BIRD_SIZE/2, Math.min(w - BIRD_SIZE/2, p.x));
+    bird.y = Math.max(BIRD_SIZE/2, Math.min(h - BIRD_SIZE/2, p.y));
+    placeEl(bird.el, bird.x, bird.y, BIRD_SIZE);
+    checkBirdEating();
+  }
+
+  fieldWrap.addEventListener('mousedown', handlePointerDown);
+  window.addEventListener('mousemove', handlePointerMove);
+  window.addEventListener('mouseup', handlePointerUp);
+  fieldWrap.addEventListener('touchstart', handlePointerDown, { passive: false });
+  window.addEventListener('touchmove', handlePointerMove, { passive: false });
+  window.addEventListener('touchend', handlePointerUp);
+  window.addEventListener('touchcancel', handlePointerUp);
+
+  function checkBirdEating(){
+    for (let i = seeds.length - 1; i >= 0; i--){
+      const s = seeds[i];
+      const dx = bird.x - s.x, dy = bird.y - s.y;
+      if (Math.sqrt(dx*dx+dy*dy) < (BIRD_SIZE + SEED_SIZE) * 0.32){
+        eatSeed(i, 'bird');
+      }
+    }
+  }
+
+  function eatSeed(index, who){
+    const s = seeds[index];
+    s.el.remove();
+    seeds.splice(index, 1);
+    if (who === 'bird'){
+      birdScore++;
+      birdScoreEl.textContent = birdScore;
+      playPeck();
+    } else {
+      wormScore++;
+      wormScoreEl.textContent = wormScore;
+      playWormEat();
+    }
+    if (seeds.length === 0){
+      setTimeout(finishRound, 400);
+    }
+  }
+
+  function wormsStep(dt){
+    const { w, h } = fieldSize();
+    worms.forEach(worm => {
+      let target = null, bestDist = Infinity;
+      seeds.forEach(s => {
+        const dx = s.x - worm.x, dy = s.y - worm.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if (dist < bestDist){ bestDist = dist; target = s; }
+      });
+
+      if (target){
+        const dx = target.x - worm.x, dy = target.y - worm.y;
+        const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+        worm.vx = (dx/dist) * worm.speed;
+        worm.vy = (dy/dist) * worm.speed;
+      }
+
+      worm.x += worm.vx * dt;
+      worm.y += worm.vy * dt;
+      worm.x = Math.max(WORM_SIZE/2, Math.min(w - WORM_SIZE/2, worm.x));
+      worm.y = Math.max(WORM_SIZE/2, Math.min(h - WORM_SIZE/2, worm.y));
+      placeEl(worm.el, worm.x, worm.y, WORM_SIZE);
+
+      for (let i = seeds.length - 1; i >= 0; i--){
+        const s = seeds[i];
+        const dx = worm.x - s.x, dy = worm.y - s.y;
+        if (Math.sqrt(dx*dx+dy*dy) < (WORM_SIZE + SEED_SIZE) * 0.32){
+          eatSeed(i, 'worm');
+          break;
+        }
+      }
+    });
+  }
+
+  function loop(ts){
+    if (!lastTime) lastTime = ts;
+    const dt = Math.min(ts - lastTime, 32);
+    lastTime = ts;
+
+    if (gameActive){
+      wormsStep(dt);
+    }
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function finishRound(){
+    if (!gameActive) return;
+    gameActive = false;
+
+    if (birdScore > wormScore){
+      playWin();
+      statusEl.textContent = 'Você venceu a fase ' + level + '! ' + birdScore + ' a ' + wormScore + ' 🎉';
+      startBtn.textContent = 'Próxima fase';
+      level++;
+      levelEl.textContent = level;
+    } else if (birdScore < wormScore){
+      playLose();
+      statusEl.textContent = 'As minhocas comeram mais! ' + wormScore + ' a ' + birdScore + '. Tente de novo!';
+      startBtn.textContent = 'Tentar de novo';
+      level = 1;
+      levelEl.textContent = level;
+    } else {
+      statusEl.textContent = 'Empate! ' + birdScore + ' a ' + wormScore + '. Tente de novo!';
+      startBtn.textContent = 'Tentar de novo';
+    }
+  }
+
+  function startGame(startingLevel){
+    level = startingLevel || 1;
+    levelEl.textContent = level;
+    birdScore = 0;
+    wormScore = 0;
+    birdScoreEl.textContent = '0';
+    wormScoreEl.textContent = '0';
+
+    clearField();
+    spawnBird();
+    spawnSeeds(SEEDS_PER_ROUND);
+    spawnWorms(level);
+
+    gameActive = true;
+    lastTime = null;
+    statusEl.textContent = 'Vai! Coma mais sementes que as ' + level + ' minhoca' + (level>1?'s':'');
+    startBtn.textContent = 'Jogando...';
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    startGame(level);
+  });
+
+  rafId = requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

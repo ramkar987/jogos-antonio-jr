@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sequência da Memória</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --cell-back: #378ADD;
+    --cell-back-edge: #185FA5;
+    --cell-revealed-bg: #FAF8F2;
+    --cell-revealed-border: #E1DDCF;
+    --cell-found-bg: #97C459;
+    --cell-found-border: #3B6D11;
+    --cell-wrong-bg: #F09595;
+    --cell-wrong-border: #A32D2D;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --cell-back: #5AA1E8;
+    --cell-back-edge: #2E6BAA;
+    --cell-revealed-bg: #322F28;
+    --cell-revealed-border: #47443B;
+    --cell-found-bg: #3B6D11;
+    --cell-found-border: #639922;
+    --cell-wrong-bg: #72241E;
+    --cell-wrong-border: #A32D2D;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-bottom: 12px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 16px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 280px;
+    margin: 0 auto 20px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    touch-action: manipulation;
+    transition: background .15s, border-color .15s, transform .1s;
+    border: 3px solid var(--cell-back-edge);
+    background: var(--cell-back);
+    color: transparent;
+  }
+  .cell:active { transform: scale(0.95); }
+  .cell.revealed {
+    background: var(--cell-revealed-bg);
+    border-color: var(--cell-revealed-border);
+    color: var(--text-primary);
+  }
+  .cell.found {
+    background: var(--cell-found-bg);
+    border-color: var(--cell-found-border);
+    color: #fff;
+    cursor: default;
+  }
+  .cell.wrong {
+    background: var(--cell-wrong-bg);
+    border-color: var(--cell-wrong-border);
+    color: #fff;
+  }
+  .cell.disabled { cursor: default; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Sequência da Memória</h1>
+  <p class="subtitle">Vire duas cartas na ordem: primeiro o menor número, depois o próximo</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Procurando</div>
+      <div class="stat-value" id="next-pair">1 → 2</div>
+    </div>
+    <div>
+      <div class="stat-label">Tentativas</div>
+      <div class="stat-value" id="attempts">0</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('seqmemoria-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('seqmemoria-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+  function playFlip(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(500, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.18, c.currentTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.1);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.1);
+  }
+  function playCorrect(){
+    const c = getActx();
+    [0,4,7].forEach((semi,i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 440 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i*0.07;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.22, t0+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0+0.2);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0+0.2);
+    });
+  }
+  function playWrong(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, c.currentTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.25);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.25);
+  }
+  function playWin(){
+    const c = getActx();
+    [0,4,7,12,16].forEach((semi,i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 260 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i*0.1;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.25, t0+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0+0.3);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0+0.3);
+    });
+  }
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const nextPairEl = document.getElementById('next-pair');
+  const attemptsEl = document.getElementById('attempts');
+
+  const NUMS = [1,2,3,4,5,6,7,8,9];
+  // grupos fixos a encontrar em ordem: pares (1,2) (3,4) (5,6) (7,8) e o 9 sozinho por último
+  const TARGET_GROUPS = [[1,2],[3,4],[5,6],[7,8],[9]];
+
+  let cellValues = [];
+  let cellStates = [];
+  let groupIndex = 0; // qual grupo de TARGET_GROUPS estamos procurando agora
+  let selected = [];
+  let attempts = 0;
+  let gameActive = false;
+  let busy = false;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--){
+      const j = randInt(0, i);
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function setupBoard(){
+    cellValues = shuffle(NUMS);
+    cellStates = Array(9).fill('hidden');
+    groupIndex = 0;
+    selected = [];
+    attempts = 0;
+    updateNextPairLabel();
+    updateAttempts();
+  }
+
+  function currentGroup(){
+    return TARGET_GROUPS[groupIndex] || null;
+  }
+
+  function updateNextPairLabel(){
+    const group = currentGroup();
+    if (!group){
+      nextPairEl.textContent = 'Pronto!';
+    } else if (group.length === 1){
+      nextPairEl.textContent = 'Só o ' + group[0];
+    } else {
+      nextPairEl.textContent = group[0] + ' → ' + group[1];
+    }
+  }
+
+  function updateAttempts(){
+    attemptsEl.textContent = attempts;
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = '';
+    for (let i = 0; i < 9; i++){
+      const cell = document.createElement('div');
+      const state = cellStates[i];
+      cell.className = 'cell' + (state !== 'hidden' ? ' ' + state : '') + (state !== 'hidden' ? ' disabled' : '');
+      if (state !== 'hidden'){
+        cell.textContent = cellValues[i];
+      }
+      cell.addEventListener('click', () => handleCellClick(i));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  function handleCellClick(i){
+    if (!gameActive || busy) return;
+    if (cellStates[i] !== 'hidden') return;
+    if (selected.includes(i)) return;
+
+    const group = currentGroup();
+    if (!group) return;
+
+    const needed = group.length; // 2 para pares, 1 para o número 9 sozinho
+    if (selected.length >= needed) return;
+
+    cellStates[i] = 'revealed';
+    playFlip();
+    selected.push(i);
+    renderBoard();
+
+    if (selected.length === needed){
+      attempts++;
+      updateAttempts();
+      busy = true;
+      evaluateSelection();
+    }
+  }
+
+  function evaluateSelection(){
+    const group = currentGroup();
+    const values = selected.map(i => cellValues[i]);
+    // ordem certa: os valores clicados devem bater exatamente com o grupo, na ordem (menor primeiro, quando houver 2)
+    const isCorrect = group.length === values.length && group.every((v, idx) => v === values[idx]);
+
+    if (isCorrect){
+      setTimeout(() => {
+        selected.forEach(i => { cellStates[i] = 'found'; });
+        playCorrect();
+        statusEl.textContent = group.length === 2
+          ? 'Isso mesmo! ' + group[0] + ' e ' + group[1] + '!'
+          : 'Isso mesmo! O ' + group[0] + ' sozinho no final!';
+        groupIndex++;
+        updateNextPairLabel();
+        selected = [];
+        busy = false;
+        renderBoard();
+
+        if (groupIndex >= TARGET_GROUPS.length){
+          setTimeout(finishRound, 900);
+        }
+      }, 500);
+    } else {
+      setTimeout(() => {
+        selected.forEach(i => { cellStates[i] = 'wrong'; });
+        renderBoard();
+        playWrong();
+        const reversedMatch = group.length === 2 && values[0] === group[1] && values[1] === group[0];
+        if (reversedMatch){
+          statusEl.textContent = 'Quase! Era pra clicar no ' + group[0] + ' primeiro. Vamos recomeçar do 1!';
+        } else {
+          statusEl.textContent = 'Não foi dessa vez! Vamos recomeçar do 1!';
+        }
+
+        setTimeout(() => {
+          // ao errar, esconde TUDO e reinicia a sequência inteira desde o começo
+          cellStates = cellStates.map(() => 'hidden');
+          groupIndex = 0;
+          updateNextPairLabel();
+          selected = [];
+          busy = false;
+          renderBoard();
+          if (gameActive) statusEl.textContent = 'Vamos recomeçar! Procurando ' + (currentGroup()[0]) + (currentGroup().length===2 ? ' → ' + currentGroup()[1] : '');
+        }, 900);
+      }, 400);
+    }
+  }
+
+  function finishRound(){
+    gameActive = false;
+    playWin();
+    statusEl.textContent = 'Você completou a sequência até o 9! 🎉';
+    startBtn.textContent = 'Jogar de novo';
+  }
+
+  function startGame(){
+    setupBoard();
+    gameActive = true;
+    busy = false;
+    statusEl.textContent = 'Encontre o par 1 → 2 primeiro!';
+    startBtn.textContent = 'Reiniciar';
+    renderBoard();
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    startGame();
+  });
+
+  // desenho inicial estático
+  setupBoard();
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>

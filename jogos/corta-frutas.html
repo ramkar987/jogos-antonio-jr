@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Corta Frutas</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --stage-bg-top: #AEDFF7;
+    --stage-bg-bottom: #EAF6FC;
+    --stage-border: #E1DDCF;
+    --timer-track: #E1DDCF;
+    --timer-fill: #639922;
+    --timer-fill-warn: #EF9F27;
+    --timer-fill-danger: #E24B4A;
+    --slice-trail: rgba(255,255,255,0.85);
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --stage-bg-top: #16233A;
+    --stage-bg-bottom: #2B3A55;
+    --stage-border: #47443B;
+    --timer-track: #47443B;
+    --timer-fill: #7BAF3A;
+    --timer-fill-warn: #F0B24A;
+    --timer-fill-danger: #F09595;
+    --slice-trail: rgba(255,255,255,0.7);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    z-index: 5;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .timer-track {
+    width: 100%;
+    height: 10px;
+    background: var(--timer-track);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .timer-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--timer-fill);
+    border-radius: 6px;
+    transition: width .1s linear, background .3s;
+  }
+
+  .status {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 24px;
+    margin-bottom: 12px;
+  }
+
+  .stage-wrap {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    max-height: 60vh;
+    border-radius: 16px;
+    border: 2px solid var(--stage-border);
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 16px;
+    touch-action: none;
+  }
+  .stage-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(var(--stage-bg-top), var(--stage-bg-bottom));
+  }
+  #stage-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .fruit-obj {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    pointer-events: none;
+  }
+  .fruit-obj svg { width: 100%; height: 100%; display: block; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Corta Frutas</h1>
+  <p class="subtitle">Arraste o dedo pelas frutas para cortar — evite as bombas!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Pontos</div>
+      <div class="stat-value" id="score">0</div>
+    </div>
+    <div>
+      <div class="stat-label">Melhor</div>
+      <div class="stat-value" id="best">0</div>
+    </div>
+  </div>
+
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill"></div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="stage-wrap" id="stage-wrap">
+    <div class="stage-bg"></div>
+    <svg id="stage-svg"></svg>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('cortafrutas-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('cortafrutas-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+
+  function playSlice(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(700, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(200, c.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.22, c.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.15);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.15);
+  }
+
+  function playBoom(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(40, c.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.35, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.5);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.5);
+  }
+
+  const FRUITS = [
+    { id: 'watermelon', color: '#5FA83C', flesh: '#E0656A', svg: (c,f) =>
+      '<circle cx="50" cy="50" r="42" fill="' + c + '"/><circle cx="50" cy="50" r="34" fill="' + f + '"/><circle cx="38" cy="42" r="2.5" fill="#2C2C2A"/><circle cx="55" cy="55" r="2.5" fill="#2C2C2A"/><circle cx="62" cy="38" r="2.5" fill="#2C2C2A"/>' },
+    { id: 'orange', color: '#EF9F27', flesh: '#F7C873', svg: (c) =>
+      '<circle cx="50" cy="50" r="40" fill="' + c + '"/><circle cx="50" cy="50" r="30" fill="' + (c==='#EF9F27'?'#F7C873':c) + '"/>' },
+    { id: 'apple', color: '#E24B4A', flesh: '#F4E3B2', svg: (c,f) =>
+      '<path d="M50 22 Q30 18 22 38 Q16 58 30 76 Q40 86 50 78 Q60 86 70 76 Q84 58 78 38 Q70 18 50 22 Z" fill="' + c + '"/><rect x="47" y="10" width="5" height="14" rx="2" fill="#5F5E5A"/><path d="M52 14 Q62 8 66 16" stroke="#639922" stroke-width="4" fill="none" stroke-linecap="round"/>' },
+    { id: 'grape', color: '#7F77DD', flesh: '#7F77DD', svg: (c) =>
+      [[35,35],[50,30],[65,35],[30,50],[45,48],[60,48],[38,65],[52,63],[66,62],[50,78]].map(([x,y]) =>
+        '<circle cx="'+x+'" cy="'+y+'" r="11" fill="'+c+'"/>').join('') }
+  ];
+
+  const BOMB_SVG = '<circle cx="50" cy="55" r="30" fill="#2C2C2A"/>' +
+    '<rect x="46" y="15" width="8" height="16" rx="3" fill="#5F5E5A"/>' +
+    '<circle cx="50" cy="14" r="6" fill="#EF9F27"/>' +
+    '<circle cx="38" cy="45" r="6" fill="rgba(255,255,255,0.15)"/>';
+
+  const stageWrap = document.getElementById('stage-wrap');
+  const stageSvg = document.getElementById('stage-svg');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const timerFill = document.getElementById('timer-fill');
+
+  const ROUND_SECONDS = 60;
+  const GRAVITY = 0.0022; // px/ms^2 equivalente (ajustado no loop)
+
+  let objects = []; // {id, el, x, y, vx, vy, r, sliced, isBomb, spawnTime}
+  let nextObjId = 1;
+  let score = 0;
+  let best = 0;
+  let timeLeft = ROUND_SECONDS;
+  let gameActive = false;
+  let roundInterval = null;
+  let spawnTimeout = null;
+  let rafId = null;
+  let lastFrameTime = null;
+
+  let trailPoints = []; // pontos recentes do dedo/mouse pra desenhar rastro e detectar corte
+  let pointerDown = false;
+
+  try { best = parseInt(localStorage.getItem('cortafrutas-best') || '0', 10) || 0; } catch(e) {}
+  bestEl.textContent = best;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function stageSize(){
+    const rect = stageWrap.getBoundingClientRect();
+    return { w: rect.width, h: rect.height };
+  }
+
+  function spawnObject(){
+    if (!gameActive) return;
+    const { w, h } = stageSize();
+    const isBomb = Math.random() < 0.18;
+
+    const el = document.createElement('div');
+    el.className = 'fruit-obj';
+
+    let svgContent;
+    if (isBomb){
+      svgContent = BOMB_SVG;
+    } else {
+      const fruit = FRUITS[randInt(0, FRUITS.length - 1)];
+      svgContent = fruit.svg(fruit.color, fruit.flesh);
+    }
+    el.innerHTML = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + svgContent + '</svg>';
+
+    const size = rand(52, 72);
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+
+    const startX = rand(size, w - size);
+    const startY = h + size;
+
+    // velocidade pra formar um arco que sobe e desce dentro da tela
+    // usa a MESMA gravidade do physicsLoop (0.00055 px/ms^2) pra calcular a velocidade inicial certa
+    const g = 0.00055;
+    const peakHeight = rand(h * 0.35, h * 0.65);
+    const vy0 = -Math.sqrt(2 * g * peakHeight);
+    const vx = rand(-0.09, 0.09);
+
+    const obj = {
+      id: nextObjId++,
+      el, x: startX, y: startY,
+      vx, vy: vy0,
+      r: size / 2,
+      isBomb,
+      sliced: false
+    };
+
+    el.style.left = (startX - size/2) + 'px';
+    el.style.top = (startY - size/2) + 'px';
+    stageWrap.appendChild(el);
+    objects.push(obj);
+  }
+
+  function scheduleSpawns(){
+    if (!gameActive) return;
+    spawnObject();
+    if (Math.random() < 0.12){
+      // às vezes gera dois de uma vez, mais dinâmico
+      setTimeout(() => { if (gameActive) spawnObject(); }, rand(150, 300));
+    }
+    spawnTimeout = setTimeout(scheduleSpawns, rand(1000, 1700));
+  }
+
+  function updateTimerBar(){
+    const pct = Math.max(0, (timeLeft / ROUND_SECONDS) * 100);
+    timerFill.style.width = pct + '%';
+    if (pct < 20) timerFill.style.background = 'var(--timer-fill-danger)';
+    else if (pct < 50) timerFill.style.background = 'var(--timer-fill-warn)';
+    else timerFill.style.background = 'var(--timer-fill)';
+  }
+
+  function physicsLoop(ts){
+    if (!lastFrameTime) lastFrameTime = ts;
+    const dt = Math.min(ts - lastFrameTime, 40); // cap pra evitar saltos
+    lastFrameTime = ts;
+
+    const { w, h } = stageSize();
+    const g = 0.00055 * dt; // gravidade acumulada no frame (mesma constante usada no spawn)
+
+    for (let i = objects.length - 1; i >= 0; i--){
+      const obj = objects[i];
+      if (obj.sliced) continue;
+
+      obj.vy += g;
+      obj.x += obj.vx * dt;
+      obj.y += obj.vy * dt;
+
+      obj.el.style.left = (obj.x - obj.r) + 'px';
+      obj.el.style.top = (obj.y - obj.r) + 'px';
+
+      if (obj.y - obj.r > h + 40 || obj.x < -60 || obj.x > w + 60){
+        obj.el.remove();
+        objects.splice(i, 1);
+      }
+    }
+
+    drawTrail();
+
+    if (gameActive){
+      rafId = requestAnimationFrame(physicsLoop);
+    }
+  }
+
+  function drawTrail(){
+    // limpa rastro antigo (mantém só pontos recentes)
+    const now = performance.now();
+    trailPoints = trailPoints.filter(p => now - p.t < 180);
+
+    let svgContent = '';
+    if (trailPoints.length > 1){
+      let d = 'M ' + trailPoints[0].x + ' ' + trailPoints[0].y;
+      for (let i = 1; i < trailPoints.length; i++){
+        d += ' L ' + trailPoints[i].x + ' ' + trailPoints[i].y;
+      }
+      svgContent = '<path d="' + d + '" stroke="var(--slice-trail)" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>';
+    }
+    stageSvg.innerHTML = svgContent;
+  }
+
+  function getStageRelativePoint(clientX, clientY){
+    const rect = stageWrap.getBoundingClientRect();
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function checkSliceAt(x, y){
+    for (const obj of objects){
+      if (obj.sliced) continue;
+      const dx = x - obj.x, dy = y - obj.y;
+      if (Math.sqrt(dx*dx + dy*dy) < obj.r * 0.9){
+        sliceObject(obj);
+      }
+    }
+  }
+
+  function sliceObject(obj){
+    obj.sliced = true;
+    obj.el.style.transition = 'transform 0.25s ease-in, opacity 0.25s ease-in';
+    obj.el.style.transform = 'scale(1.15) rotate(' + (obj.isBomb ? 0 : rand(-30,30)) + 'deg)';
+    obj.el.style.opacity = '0';
+    setTimeout(() => obj.el.remove(), 260);
+    objects = objects.filter(o => o.id !== obj.id);
+
+    if (obj.isBomb){
+      playBoom();
+      statusEl.textContent = 'Boom! Você cortou uma bomba — pontos zerados!';
+      score = 0;
+      scoreEl.textContent = '0';
+      flashStage();
+    } else {
+      playSlice();
+      score++;
+      scoreEl.textContent = score;
+    }
+  }
+
+  function flashStage(){
+    stageWrap.style.filter = 'brightness(1.8)';
+    setTimeout(() => { stageWrap.style.filter = ''; }, 150);
+  }
+
+  function handlePointerDown(e){
+    if (!gameActive) return;
+    pointerDown = true;
+    const p = pointFromEvent(e);
+    trailPoints.push({ x: p.x, y: p.y, t: performance.now() });
+    checkSliceAt(p.x, p.y);
+  }
+
+  function handlePointerMove(e){
+    if (!gameActive || !pointerDown) return;
+    const p = pointFromEvent(e);
+    trailPoints.push({ x: p.x, y: p.y, t: performance.now() });
+    checkSliceAt(p.x, p.y);
+  }
+
+  function handlePointerUp(){
+    pointerDown = false;
+  }
+
+  function pointFromEvent(e){
+    if (e.touches && e.touches.length > 0){
+      return getStageRelativePoint(e.touches[0].clientX, e.touches[0].clientY);
+    }
+    return getStageRelativePoint(e.clientX, e.clientY);
+  }
+
+  stageWrap.addEventListener('mousedown', handlePointerDown);
+  stageWrap.addEventListener('mousemove', handlePointerMove);
+  window.addEventListener('mouseup', handlePointerUp);
+
+  stageWrap.addEventListener('touchstart', (e) => { handlePointerDown(e); e.preventDefault(); }, { passive: false });
+  stageWrap.addEventListener('touchmove', (e) => { handlePointerMove(e); e.preventDefault(); }, { passive: false });
+  stageWrap.addEventListener('touchend', handlePointerUp);
+
+  function clearStage(){
+    objects.forEach(o => o.el.remove());
+    objects = [];
+    trailPoints = [];
+    stageSvg.innerHTML = '';
+  }
+
+  function startGame(){
+    clearStage();
+    score = 0;
+    scoreEl.textContent = '0';
+    timeLeft = ROUND_SECONDS;
+    updateTimerBar();
+    gameActive = true;
+    lastFrameTime = null;
+    statusEl.textContent = 'Vai! Corte as frutas, evite as bombas!';
+    startBtn.textContent = 'Jogando...';
+    startBtn.disabled = true;
+
+    clearInterval(roundInterval);
+    roundInterval = setInterval(() => {
+      timeLeft -= 0.1;
+      if (timeLeft <= 0){
+        timeLeft = 0;
+        updateTimerBar();
+        endGame();
+        return;
+      }
+      updateTimerBar();
+    }, 100);
+
+    scheduleSpawns();
+    rafId = requestAnimationFrame(physicsLoop);
+  }
+
+  function endGame(){
+    gameActive = false;
+    clearInterval(roundInterval);
+    clearTimeout(spawnTimeout);
+    cancelAnimationFrame(rafId);
+
+    if (score > best){
+      best = score;
+      try { localStorage.setItem('cortafrutas-best', String(best)); } catch(e) {}
+      bestEl.textContent = best;
+      statusEl.textContent = 'Novo recorde! Você fez ' + score + ' pontos! 🎉';
+    } else {
+      statusEl.textContent = 'Tempo esgotado! Você fez ' + score + ' pontos';
+    }
+
+    startBtn.textContent = 'Jogar de novo';
+    startBtn.disabled = false;
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    startGame();
+  });
+})();
+</script>
+
+</body>
+</html>

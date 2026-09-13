@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Labirinto Elétrico</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --maze-bg: #FAF8F2;
+    --wall: #5F5E5A;
+    --wall-flash: #E24B4A;
+    --path-glow: rgba(99, 153, 34, 0.12);
+    --ball: #378ADD;
+    --ball-edge: #185FA5;
+    --start-marker: #639922;
+    --goal-marker: #EF9F27;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --maze-bg: #26251F;
+    --wall: #A6A399;
+    --wall-flash: #F09595;
+    --path-glow: rgba(123, 175, 58, 0.18);
+    --ball: #5AA1E8;
+    --ball-edge: #2E6BAA;
+    --start-marker: #7BAF3A;
+    --goal-marker: #F0B24A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    z-index: 5;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 26px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .lives-row { font-size: 20px; }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 12px;
+  }
+
+  .maze-wrap {
+    width: 100%;
+    max-width: 380px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    background: var(--maze-bg);
+    border: 2px solid var(--key-border);
+    touch-action: none;
+  }
+  #maze-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .maze-wrap.shake {
+    animation: shake 0.35s;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Labirinto Elétrico</h1>
+  <p class="subtitle">Arraste a bolinha do início ao fim sem tocar nas paredes!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Vidas</div>
+      <div class="stat-value lives-row" id="lives">❤️❤️❤️</div>
+    </div>
+    <div>
+      <div class="stat-label">Fase</div>
+      <div class="stat-value" id="level">1</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="maze-wrap" id="maze-wrap">
+    <svg id="maze-svg" viewBox="0 0 100 100"></svg>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('labirinto-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('labirinto-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+
+  function playBuzz(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(110, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.28, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.35);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.35);
+  }
+
+  function playWin(){
+    const c = getActx();
+    [0,4,7,12].forEach((semi, i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 260 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i * 0.1;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.25, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.3);
+    });
+  }
+
+  const mazeWrap = document.getElementById('maze-wrap');
+  const svg = document.getElementById('maze-svg');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const livesEl = document.getElementById('lives');
+  const levelEl = document.getElementById('level');
+
+  const MAX_LIVES = 3;
+
+  let level = 1;
+  let lives = MAX_LIVES;
+  let gameActive = false;
+  let dragging = false;
+  let ballPos = { x: 0, y: 0 };
+  let startPos = { x: 0, y: 0 };
+  let goalPos = { x: 0, y: 0 };
+  let wallSegments = []; // {x1,y1,x2,y2} em coordenadas do viewBox (0-100)
+  const BALL_RADIUS = 3;
+  const WALL_THICKNESS = 2.4;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  // ---- Geração do labirinto por grid + DFS (backtracking) ----
+  function generateMazeWalls(lvl){
+    const gridSize = Math.min(4 + Math.floor((lvl - 1) / 2), 7); // cresce a cada 2 fases, até 7x7
+    const cellSize = 100 / gridSize;
+
+    const cells = [];
+    for (let r = 0; r < gridSize; r++){
+      const row = [];
+      for (let c = 0; c < gridSize; c++){
+        row.push({ N: true, E: true, S: true, W: true, visited: false });
+      }
+      cells.push(row);
+    }
+
+    function neighbors(r, c){
+      const list = [];
+      if (r > 0) list.push({ r: r-1, c, dir: 'N', opp: 'S' });
+      if (r < gridSize-1) list.push({ r: r+1, c, dir: 'S', opp: 'N' });
+      if (c > 0) list.push({ r, c: c-1, dir: 'W', opp: 'E' });
+      if (c < gridSize-1) list.push({ r, c: c+1, dir: 'E', opp: 'W' });
+      return list;
+    }
+
+    const stack = [{ r: 0, c: 0 }];
+    cells[0][0].visited = true;
+    while (stack.length){
+      const cur = stack[stack.length - 1];
+      const options = neighbors(cur.r, cur.c).filter(n => !cells[n.r][n.c].visited);
+      if (options.length === 0){
+        stack.pop();
+        continue;
+      }
+      const chosen = options[randInt(0, options.length - 1)];
+      cells[cur.r][cur.c][chosen.dir] = false;
+      cells[chosen.r][chosen.c][chosen.opp] = false;
+      cells[chosen.r][chosen.c].visited = true;
+      stack.push({ r: chosen.r, c: chosen.c });
+    }
+
+    const walls = [];
+    for (let r = 0; r < gridSize; r++){
+      for (let c = 0; c < gridSize; c++){
+        const x0 = c * cellSize, y0 = r * cellSize;
+        const x1 = x0 + cellSize, y1 = y0 + cellSize;
+        const cell = cells[r][c];
+        if (cell.N) walls.push({ x1: x0, y1: y0, x2: x1, y2: y0 });
+        if (cell.S) walls.push({ x1: x0, y1: y1, x2: x1, y2: y1 });
+        if (cell.W) walls.push({ x1: x0, y1: y0, x2: x0, y2: y1 });
+        if (cell.E) walls.push({ x1: x1, y1: y0, x2: x1, y2: y1 });
+      }
+    }
+
+    const start = { x: cellSize/2, y: cellSize/2 };
+    const goal = { x: (gridSize-0.5) * cellSize, y: (gridSize-0.5) * cellSize };
+
+    return { walls, start, goal, gridSize, cellSize };
+  }
+
+  function setupLevel(lvl){
+    const maze = generateMazeWalls(lvl);
+    wallSegments = maze.walls;
+    startPos = maze.start;
+    goalPos = maze.goal;
+    ballPos = { x: startPos.x, y: startPos.y };
+    dragging = false;
+  }
+
+  function drawMaze(flashWall){
+    let content = '<rect x="0" y="0" width="100" height="100" fill="var(--maze-bg)"/>';
+
+    content += '<circle cx="' + startPos.x + '" cy="' + startPos.y + '" r="4.5" fill="var(--start-marker)" opacity="0.35"/>';
+    content += '<circle cx="' + goalPos.x + '" cy="' + goalPos.y + '" r="4.5" fill="var(--goal-marker)" opacity="0.5"/>';
+    content += '<text x="' + goalPos.x + '" y="' + (goalPos.y + 1.6) + '" font-size="5" text-anchor="middle" fill="var(--goal-marker)">🏁</text>';
+
+    wallSegments.forEach(w => {
+      content += '<line x1="' + w.x1 + '" y1="' + w.y1 + '" x2="' + w.x2 + '" y2="' + w.y2 + '" stroke="' + (flashWall ? 'var(--wall-flash)' : 'var(--wall)') + '" stroke-width="' + WALL_THICKNESS + '" stroke-linecap="round"/>';
+    });
+
+    content += '<circle cx="' + ballPos.x + '" cy="' + ballPos.y + '" r="' + BALL_RADIUS + '" fill="var(--ball)" stroke="var(--ball-edge)" stroke-width="1"/>';
+
+    svg.innerHTML = content;
+  }
+
+  function distToSegment(px, py, x1, y1, x2, y2){
+    const dx = x2 - x1, dy = y2 - y1;
+    const lenSq = dx*dx + dy*dy;
+    let t = lenSq === 0 ? 0 : ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const closestX = x1 + t * dx;
+    const closestY = y1 + t * dy;
+    const ddx = px - closestX, ddy = py - closestY;
+    return Math.sqrt(ddx*ddx + ddy*ddy);
+  }
+
+  function checkWallCollision(x, y){
+    const threshold = BALL_RADIUS + WALL_THICKNESS/2;
+    return wallSegments.some(w => distToSegment(x, y, w.x1, w.y1, w.x2, w.y2) < threshold);
+  }
+
+  function checkGoalReached(x, y){
+    const dx = x - goalPos.x, dy = y - goalPos.y;
+    return Math.sqrt(dx*dx + dy*dy) < BALL_RADIUS + 2;
+  }
+
+  function getSvgPoint(clientX, clientY){
+    const rect = mazeWrap.getBoundingClientRect();
+    const relX = (clientX - rect.left) / rect.width * 100;
+    const relY = (clientY - rect.top) / rect.height * 100;
+    return { x: relX, y: relY };
+  }
+
+  function pointFromEvent(e){
+    if (e.touches && e.touches.length > 0){
+      return getSvgPoint(e.touches[0].clientX, e.touches[0].clientY);
+    }
+    return getSvgPoint(e.clientX, e.clientY);
+  }
+
+  function handleStart(e){
+    if (!gameActive) return;
+    const p = pointFromEvent(e);
+    const dx = p.x - ballPos.x, dy = p.y - ballPos.y;
+    if (Math.sqrt(dx*dx + dy*dy) < 8){
+      dragging = true;
+    }
+  }
+
+  function handleMove(e){
+    if (!gameActive || !dragging) return;
+    const p = pointFromEvent(e);
+
+    if (checkWallCollision(p.x, p.y)){
+      hitWall();
+      return;
+    }
+
+    ballPos = p;
+    drawMaze(false);
+
+    if (checkGoalReached(p.x, p.y)){
+      winLevel();
+    }
+  }
+
+  function handleEnd(){
+    dragging = false;
+  }
+
+  function hitWall(){
+    dragging = false;
+    playBuzz();
+    lives--;
+    updateLives();
+    mazeWrap.classList.add('shake');
+    drawMaze(true);
+    setTimeout(() => { mazeWrap.classList.remove('shake'); }, 350);
+
+    if (lives <= 0){
+      gameOver();
+      return;
+    }
+
+    statusEl.textContent = 'Bzzzt! Voltou pro início. Cuidado!';
+    ballPos = { x: startPos.x, y: startPos.y };
+    setTimeout(() => drawMaze(false), 300);
+  }
+
+  function updateLives(){
+    livesEl.textContent = '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(MAX_LIVES - Math.max(0, lives));
+  }
+
+  function winLevel(){
+    gameActive = false;
+    dragging = false;
+    playWin();
+    statusEl.textContent = 'Você chegou! Fase ' + level + ' completa! 🎉';
+    level++;
+    levelEl.textContent = level;
+    startBtn.textContent = 'Próxima fase';
+  }
+
+  function gameOver(){
+    gameActive = false;
+    dragging = false;
+    statusEl.textContent = 'Suas vidas acabaram! Tente de novo desde a fase 1';
+    startBtn.textContent = 'Jogar de novo';
+    level = 1;
+    levelEl.textContent = level;
+  }
+
+  mazeWrap.addEventListener('mousedown', handleStart);
+  mazeWrap.addEventListener('mousemove', handleMove);
+  window.addEventListener('mouseup', handleEnd);
+
+  mazeWrap.addEventListener('touchstart', (e) => { handleStart(e); e.preventDefault(); }, { passive: false });
+  mazeWrap.addEventListener('touchmove', (e) => { handleMove(e); e.preventDefault(); }, { passive: false });
+  mazeWrap.addEventListener('touchend', handleEnd);
+
+  function startGame(startingLevel){
+    level = startingLevel || 1;
+    levelEl.textContent = level;
+    lives = MAX_LIVES;
+    updateLives();
+    setupLevel(level);
+    gameActive = true;
+    statusEl.textContent = 'Arraste a bolinha azul até a bandeira!';
+    startBtn.textContent = 'Jogando...';
+    drawMaze(false);
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    if (statusEl.textContent.includes('completa')){
+      startGame(level);
+    } else {
+      startGame(1);
+    }
+  });
+
+  // desenho inicial estático
+  setupLevel(1);
+  updateLives();
+  drawMaze(false);
+})();
+</script>
+
+</body>
+</html>

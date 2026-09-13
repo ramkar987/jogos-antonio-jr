@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Siga os Números</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #FFF8EC;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    padding: 28px 24px 32px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 4px;
+    color: #3C3489;
+  }
+  .subtitle {
+    font-size: 14px;
+    color: #888780;
+    margin: 0 0 20px;
+  }
+  .score-label {
+    font-size: 14px;
+    color: #888780;
+    margin-bottom: 2px;
+  }
+  .score {
+    font-size: 40px;
+    font-weight: 700;
+    color: #3C3489;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+  .status {
+    font-size: 16px;
+    color: #5F5E5A;
+    min-height: 24px;
+    margin-bottom: 20px;
+    font-weight: 500;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .num-btn {
+    height: 68px;
+    font-size: 26px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: 2px solid #E1DDCF;
+    background: #FAF8F2;
+    color: #2C2C2A;
+    cursor: pointer;
+    transition: background .15s, color .15s, transform .1s, border-color .15s;
+    touch-action: manipulation;
+  }
+  .num-btn:active {
+    transform: scale(0.94);
+  }
+  .num-btn.lit {
+    background: #378ADD;
+    border-color: #185FA5;
+    color: #fff;
+  }
+  .num-btn.correct {
+    background: #639922;
+    border-color: #3B6D11;
+    color: #fff;
+  }
+  .num-btn.wrong {
+    background: #E24B4A;
+    border-color: #993C1D;
+    color: #fff;
+  }
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: #3C3489;
+    color: #fff;
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active {
+    transform: scale(0.97);
+    background: #26215C;
+  }
+  .best {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #888780;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Siga os Números</h1>
+  <p class="subtitle">Observe a sequência e clique na mesma ordem</p>
+
+  <div class="score-label">Sequência</div>
+  <div class="score" id="score">0</div>
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="grid" id="grid"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+  <div class="best" id="best"></div>
+</div>
+
+<script>
+(function(){
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let ctx = null;
+
+  function getCtx(){
+    if (!ctx) ctx = new AudioCtx();
+    return ctx;
+  }
+
+  function noteFreq(n){
+    const base = 220;
+    const steps = [0,2,4,5,7,9,11,12,14,16];
+    return base * Math.pow(2, steps[n-1]/12);
+  }
+
+  function playTone(n, dur){
+    const c = getCtx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = noteFreq(n);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.3, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + dur);
+  }
+
+  function playSuccessJingle(){
+    const c = getCtx();
+    [0,4,7].forEach((semi, i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 220 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i * 0.09;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.25, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.3);
+    });
+  }
+
+  function playErrorSound(){
+    const c = getCtx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 130;
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.4);
+    osc.connect(gain).connect(c.destination);
+    osc.start();
+    osc.stop(c.currentTime + 0.4);
+  }
+
+  const gridEl = document.getElementById('grid');
+  const statusEl = document.getElementById('status');
+  const scoreEl = document.getElementById('score');
+  const startBtn = document.getElementById('start');
+  const bestEl = document.getElementById('best');
+
+  const buttons = [];
+  for (let n = 1; n <= 10; n++){
+    const b = document.createElement('button');
+    b.className = 'num-btn';
+    b.textContent = n;
+    b.dataset.n = n;
+    gridEl.appendChild(b);
+    buttons.push(b);
+  }
+
+  const MAX_LEN = 10;
+  let sequence = [];
+  let playerStep = 0;
+  let accepting = false;
+
+  let best = 0;
+  try {
+    best = parseInt(localStorage.getItem('siga-numeros-best') || '0', 10) || 0;
+  } catch(e) {}
+  function updateBest(){
+    bestEl.textContent = best > 0 ? ('Melhor resultado: ' + best) : '';
+  }
+  updateBest();
+
+  function clearClass(btn){
+    btn.classList.remove('lit', 'correct', 'wrong');
+  }
+
+  function lightUp(n, dur){
+    const b = buttons[n-1];
+    clearClass(b);
+    b.classList.add('lit');
+    playTone(n, dur/1000 * 0.9);
+    setTimeout(() => { clearClass(b); }, dur * 0.8);
+  }
+
+  function flashCorrect(n){
+    const b = buttons[n-1];
+    clearClass(b);
+    b.classList.add('correct');
+    setTimeout(() => { clearClass(b); }, 250);
+  }
+
+  function flashWrong(n){
+    const b = buttons[n-1];
+    clearClass(b);
+    b.classList.add('wrong');
+    setTimeout(() => { clearClass(b); }, 500);
+  }
+
+  async function playSequence(){
+    accepting = false;
+    statusEl.textContent = 'Observe os números...';
+    await new Promise(r => setTimeout(r, 600));
+    for (let i = 0; i < sequence.length; i++){
+      lightUp(sequence[i], 650);
+      await new Promise(r => setTimeout(r, 800));
+    }
+    playerStep = 0;
+    accepting = true;
+    statusEl.textContent = 'Sua vez! Clique na ordem';
+  }
+
+  function nextRound(){
+    sequence.push(1 + Math.floor(Math.random()*10));
+    scoreEl.textContent = sequence.length;
+    if (sequence.length > MAX_LEN){
+      finishWin();
+      return;
+    }
+    playSequence();
+  }
+
+  function finishWin(){
+    statusEl.textContent = 'Você completou os 10 números! Parabéns!';
+    playSuccessJingle();
+    saveBestIfNeeded(MAX_LEN);
+    startBtn.textContent = 'Jogar de novo';
+    startBtn.style.display = 'block';
+  }
+
+  function saveBestIfNeeded(value){
+    if (value > best){
+      best = value;
+      try { localStorage.setItem('siga-numeros-best', String(best)); } catch(e) {}
+      updateBest();
+    }
+  }
+
+  function gameOver(){
+    accepting = false;
+    const reached = sequence.length - 1;
+    statusEl.textContent = reached > 0
+      ? ('Quase lá! Você chegou até ' + reached + ' números.')
+      : 'Vamos tentar de novo!';
+    playErrorSound();
+    saveBestIfNeeded(reached);
+    startBtn.textContent = 'Jogar de novo';
+    startBtn.style.display = 'block';
+  }
+
+  buttons.forEach(b => {
+    b.addEventListener('click', () => {
+      if (!accepting) return;
+      const n = parseInt(b.dataset.n, 10);
+      if (n === sequence[playerStep]){
+        flashCorrect(n);
+        playTone(n, 0.2);
+        playerStep++;
+        if (playerStep === sequence.length){
+          accepting = false;
+          if (sequence.length >= MAX_LEN){
+            finishWin();
+          } else {
+            statusEl.textContent = 'Muito bem!';
+            setTimeout(nextRound, 900);
+          }
+        }
+      } else {
+        flashWrong(n);
+        gameOver();
+      }
+    });
+  });
+
+  startBtn.addEventListener('click', () => {
+    const c = getCtx();
+    if (c.state === 'suspended') c.resume();
+    sequence = [];
+    scoreEl.textContent = '0';
+    startBtn.style.display = 'none';
+    startBtn.textContent = 'Iniciar jogo';
+    nextRound();
+  });
+})();
+</script>
+
+</body>
+</html>

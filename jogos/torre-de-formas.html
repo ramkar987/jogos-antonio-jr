@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Torre de Formas</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --board-bg: #FAF8F2;
+    --board-border: #E1DDCF;
+    --tile-bg: #ffffff;
+    --tile-border: #C9BB9A;
+    --tile-locked-bg: #E1DDCF;
+    --tile-locked-border: #B5AC93;
+    --tile-locked-shape: #A6A399;
+    --tile-selected: #EF9F27;
+    --tile-shadow: rgba(0,0,0,0.15);
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --board-bg: #201F1A;
+    --board-border: #3E3A2E;
+    --tile-bg: #322F28;
+    --tile-border: #5C543F;
+    --tile-locked-bg: #201F1A;
+    --tile-locked-border: #3E3A2E;
+    --tile-locked-shape: #47443B;
+    --tile-selected: #F0B24A;
+    --tile-shadow: rgba(0,0,0,0.5);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    z-index: 6;
+  }
+  h1 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .status {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 20px;
+    margin-bottom: 12px;
+  }
+
+  .board-wrap {
+    width: 100%;
+    aspect-ratio: 6 / 5;
+    max-height: 58vh;
+    margin: 0 auto 16px;
+    background: var(--board-bg);
+    border: 2px solid var(--board-border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tile {
+    position: absolute;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform .1s, filter .15s;
+  }
+  .tile.locked {
+    cursor: default;
+    filter: brightness(0.85);
+  }
+  .tile.selected {
+    box-shadow: 0 0 0 3px var(--tile-selected);
+    transform: translateY(-2px);
+  }
+  .tile svg { width: 62%; height: 62%; display: block; pointer-events: none; }
+
+  .legend {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 14px;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Torre de Formas</h1>
+  <p class="subtitle">Combine duas peças iguais que estejam livres para removê-las</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Peças restantes</div>
+      <div class="stat-value" id="remaining">0</div>
+    </div>
+    <div>
+      <div class="stat-label">Pares</div>
+      <div class="stat-value" id="pairs">0</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board-wrap" id="board-wrap"></div>
+
+  <p class="legend">Peças escuras estão bloqueadas (têm outra por cima ou dos dois lados)</p>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('torreformas-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('torreformas-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+  function playMatch(){
+    const c = getActx();
+    [0,4,7].forEach((semi,i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 440 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i*0.06;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.22, t0+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0+0.18);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0+0.18);
+    });
+  }
+  function playSelect(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(500, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, c.currentTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.08);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.08);
+  }
+  function playBlocked(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, c.currentTime+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.15);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.15);
+  }
+  function playWin(){
+    const c = getActx();
+    [0,4,7,12,16].forEach((semi,i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 260 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i*0.1;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.25, t0+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0+0.3);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0+0.3);
+    });
+  }
+
+  const boardWrap = document.getElementById('board-wrap');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const remainingEl = document.getElementById('remaining');
+  const pairsEl = document.getElementById('pairs');
+
+  const SYMBOLS = [
+    { id: 'circle-red',    svg: '<circle cx="50" cy="50" r="38" fill="#E24B4A"/>' },
+    { id: 'square-blue',   svg: '<rect x="14" y="14" width="72" height="72" rx="10" fill="#378ADD"/>' },
+    { id: 'triangle-green',svg: '<polygon points="50,10 90,88 10,88" fill="#639922"/>' },
+    { id: 'star-orange',   svg: '<polygon points="50,6 61,37 96,37 68,58 79,91 50,71 21,91 32,58 4,37 39,37" fill="#EF9F27"/>' },
+    { id: 'hexagon-purple',svg: '<polygon points="50,6 90,28 90,72 50,94 10,72 10,28" fill="#7F77DD"/>' },
+    { id: 'diamond-pink',  svg: '<polygon points="50,6 94,50 50,94 6,50" fill="#D4537E"/>' },
+    { id: 'circle-teal',   svg: '<circle cx="50" cy="50" r="38" fill="#1D9E75"/>' },
+    { id: 'square-yellow', svg: '<rect x="14" y="14" width="72" height="72" rx="10" fill="#F7D24C"/>' }
+  ];
+
+  const COLS = 6, ROWS = 5;
+
+  function buildFullGrid(){
+    const cells = [];
+    for (let r = 0; r < ROWS; r++){
+      for (let c = 0; c < COLS; c++){
+        cells.push({ col: c, row: r });
+      }
+    }
+    return cells;
+  }
+
+  function buildInnerGrid(colOffset, rowOffset, w, h){
+    const cells = [];
+    for (let r = 0; r < h; r++){
+      for (let c = 0; c < w; c++){
+        cells.push({ col: colOffset + c, row: rowOffset + r });
+      }
+    }
+    return cells;
+  }
+
+  const LAYERS = [
+    { layer: 0, cells: buildFullGrid() },
+    { layer: 1, cells: buildInnerGrid(1, 1, 4, 3) },
+    { layer: 2, cells: buildInnerGrid(2, 2, 2, 1) }
+  ];
+
+  let tiles = [];
+  let selected = null;
+  let gameActive = false;
+  let busy = false;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--){
+      const j = randInt(0, i);
+      const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  function buildTiles(){
+    const totalCells = LAYERS.reduce((sum, l) => sum + l.cells.length, 0);
+    const evenTotal = totalCells % 2 === 0 ? totalCells : totalCells - 1;
+    const pairsNeeded = evenTotal / 2;
+
+    let symbolPool = [];
+    for (let i = 0; i < pairsNeeded; i++){
+      const sym = SYMBOLS[i % SYMBOLS.length];
+      symbolPool.push(sym, sym);
+    }
+    symbolPool = shuffle(symbolPool);
+
+    // monta lista de todas as células, ignora a última se o total for ímpar
+    let allCells = [];
+    LAYERS.forEach(layerDef => {
+      layerDef.cells.forEach(cell => {
+        allCells.push({ layer: layerDef.layer, col: cell.col, row: cell.row });
+      });
+    });
+    allCells = allCells.slice(0, evenTotal);
+
+    tiles = allCells.map((cell, idx) => ({
+      id: idx,
+      layer: cell.layer,
+      col: cell.col,
+      row: cell.row,
+      symbol: symbolPool[idx],
+      removed: false
+    }));
+  }
+
+  function isBlockedAbove(tile){
+    if (tile.removed) return false;
+    return tiles.some(t => !t.removed && t.layer > tile.layer &&
+      Math.abs(t.col - tile.col) < 1.5 && Math.abs(t.row - tile.row) < 1.5);
+  }
+
+  function isFree(tile){
+    if (tile.removed) return false;
+    if (isBlockedAbove(tile)) return false;
+
+    const sameLayerRow = tiles.filter(t => !t.removed && t.layer === tile.layer && t.row === tile.row);
+    const leftBlocked = sameLayerRow.some(t => t.col === tile.col - 1);
+    const rightBlocked = sameLayerRow.some(t => t.col === tile.col + 1);
+
+    return !(leftBlocked && rightBlocked);
+  }
+
+  function tileSize(){
+    const rect = boardWrap.getBoundingClientRect();
+    return { w: rect.width / COLS, h: rect.height / ROWS };
+  }
+
+  function renderBoard(){
+    boardWrap.innerHTML = '';
+    const { w: cw, h: ch } = tileSize();
+
+    const sorted = tiles.filter(t => !t.removed).sort((a,b) => a.layer - b.layer);
+
+    sorted.forEach(tile => {
+      const el = document.createElement('div');
+      const free = isFree(tile);
+      el.className = 'tile' + (free ? '' : ' locked') + (selected && selected.id === tile.id ? ' selected' : '');
+      el.style.width = (cw * 0.86) + 'px';
+      el.style.height = (ch * 0.86) + 'px';
+      el.style.left = (tile.col * cw + cw*0.07 + tile.layer * 2) + 'px';
+      el.style.top = (tile.row * ch + ch*0.07 - tile.layer * 4) + 'px';
+      el.style.zIndex = tile.layer + 1;
+      el.style.background = free ? 'var(--tile-bg)' : 'var(--tile-locked-bg)';
+      el.style.border = '2px solid ' + (free ? 'var(--tile-border)' : 'var(--tile-locked-border)');
+      el.style.boxShadow = '0 ' + (2 + tile.layer*2) + 'px ' + (4 + tile.layer*2) + 'px var(--tile-shadow)';
+
+      if (free){
+        el.innerHTML = '<svg viewBox="0 0 100 100">' + tile.symbol.svg + '</svg>';
+      } else {
+        el.innerHTML = '<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" rx="8" fill="var(--tile-locked-shape)"/></svg>';
+      }
+
+      el.addEventListener('click', () => handleTileClick(tile));
+      boardWrap.appendChild(el);
+    });
+
+    updateStats();
+  }
+
+  function updateStats(){
+    const remaining = tiles.filter(t => !t.removed).length;
+    remainingEl.textContent = remaining;
+    const totalPairs = Math.floor(tiles.length / 2);
+    const removedPairs = Math.floor((tiles.length - remaining) / 2);
+    pairsEl.textContent = removedPairs + ' / ' + totalPairs;
+  }
+
+  function handleTileClick(tile){
+    if (!gameActive || busy) return;
+    if (!isFree(tile)) { playBlocked(); return; }
+
+    if (!selected){
+      selected = tile;
+      playSelect();
+      renderBoard();
+      return;
+    }
+
+    if (selected.id === tile.id){
+      selected = null;
+      renderBoard();
+      return;
+    }
+
+    if (selected.symbol.id === tile.symbol.id){
+      busy = true;
+      const a = selected, b = tile;
+      selected = null;
+      setTimeout(() => {
+        a.removed = true;
+        b.removed = true;
+        playMatch();
+        renderBoard();
+        busy = false;
+
+        const remaining = tiles.filter(t => !t.removed).length;
+        if (remaining === 0){
+          finishGame(true);
+        } else if (!hasAnyMove()){
+          finishGame(false);
+        }
+      }, 150);
+    } else {
+      playBlocked();
+      selected = tile;
+      renderBoard();
+    }
+  }
+
+  function hasAnyMove(){
+    const freeTiles = tiles.filter(t => !t.removed && isFree(t));
+    for (let i = 0; i < freeTiles.length; i++){
+      for (let j = i+1; j < freeTiles.length; j++){
+        if (freeTiles[i].symbol.id === freeTiles[j].symbol.id) return true;
+      }
+    }
+    return false;
+  }
+
+  function finishGame(won){
+    gameActive = false;
+    if (won){
+      playWin();
+      statusEl.textContent = 'Você limpou a torre toda! 🎉';
+    } else {
+      statusEl.textContent = 'Sem mais jogadas possíveis. Toque em reiniciar para tentar de novo!';
+    }
+    startBtn.textContent = 'Jogar de novo';
+  }
+
+  function startGame(){
+    buildTiles();
+    selected = null;
+    gameActive = true;
+    busy = false;
+    statusEl.textContent = 'Combine peças iguais que estejam livres!';
+    startBtn.textContent = 'Reiniciar';
+    renderBoard();
+
+    let safety = 0;
+    while (!hasAnyMove() && safety < 20){
+      safety++;
+      buildTiles();
+      renderBoard();
+    }
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    startGame();
+  });
+
+  window.addEventListener('resize', () => { if (tiles.length) renderBoard(); });
+})();
+</script>
+
+</body>
+</html>

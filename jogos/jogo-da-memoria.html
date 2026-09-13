@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jogo da Memória</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --tile-back: #FAF8F2;
+    --tile-back-border: #E1DDCF;
+    --tile-matched-border: #3B6D11;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --tile-back: #322F28;
+    --tile-back-border: #47443B;
+    --tile-matched-border: #639922;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 24px 20px 28px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0 0 16px;
+  }
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 16px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .status {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-height: 22px;
+    margin-bottom: 14px;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .tile {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    perspective: 600px;
+    cursor: pointer;
+  }
+  .tile-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform .35s;
+    transform-style: preserve-3d;
+  }
+  .tile.flipped .tile-inner,
+  .tile.matched .tile-inner {
+    transform: rotateY(180deg);
+  }
+  .tile-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+  }
+  .tile-back {
+    background: var(--tile-back);
+    border: 2px solid var(--tile-back-border);
+  }
+  .tile-back::after {
+    content: "?";
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+  .tile-front {
+    background: var(--card-bg);
+    border: 2px solid var(--tile-back-border);
+    transform: rotateY(180deg);
+    padding: 14%;
+  }
+  .tile.matched .tile-front {
+    border-color: var(--tile-matched-border);
+  }
+  .tile-front svg { width: 100%; height: 100%; }
+
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Jogo da Memória</h1>
+  <p class="subtitle">Encontre os pares de formas e cores iguais</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Tentativas</div>
+      <div class="stat-value" id="attempts">0</div>
+    </div>
+    <div>
+      <div class="stat-label">Pares</div>
+      <div class="stat-value" id="matches">0 / 10</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('memoria-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('memoria-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  // Definição das 10 combinações forma+cor (20 cartas = 10 pares)
+  const COLORS = [
+    { name: 'blue',   hex: '#378ADD' },
+    { name: 'coral',  hex: '#D85A30' },
+    { name: 'green',  hex: '#639922' },
+    { name: 'amber',  hex: '#EF9F27' },
+    { name: 'purple', hex: '#7F77DD' },
+    { name: 'pink',   hex: '#D4537E' },
+    { name: 'teal',   hex: '#1D9E75' },
+    { name: 'red',    hex: '#E24B4A' },
+    { name: 'gray',   hex: '#888780' },
+    { name: 'blue2',  hex: '#185FA5' }
+  ];
+
+  function shapeSVG(shapeIndex, color){
+    const shapes = [
+      // círculo
+      '<circle cx="50" cy="50" r="42" fill="' + color + '"/>',
+      // quadrado
+      '<rect x="10" y="10" width="80" height="80" rx="10" fill="' + color + '"/>',
+      // triângulo
+      '<polygon points="50,8 92,88 8,88" fill="' + color + '"/>',
+      // estrela
+      '<polygon points="50,5 61,37 96,37 68,58 79,91 50,71 21,91 32,58 4,37 39,37" fill="' + color + '"/>',
+      // hexágono
+      '<polygon points="50,5 90,27 90,73 50,95 10,73 10,27" fill="' + color + '"/>'
+    ];
+    return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + shapes[shapeIndex] + '</svg>';
+  }
+
+  // 10 pares: cada par combina uma forma fixa (índice 0-4, repetido) com uma cor única
+  const PAIR_DEFS = COLORS.map((c, i) => ({ shape: i % 5, color: c.hex, id: c.name }));
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const attemptsEl = document.getElementById('attempts');
+  const matchesEl = document.getElementById('matches');
+  const startBtn = document.getElementById('start');
+
+  const TOTAL_PAIRS = PAIR_DEFS.length;
+
+  let cards = [];
+  let flipped = [];
+  let matchedCount = 0;
+  let attempts = 0;
+  let busy = false;
+  let gameActive = false;
+
+  function shuffle(arr){
+    for (let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function buildDeck(){
+    let deck = [];
+    PAIR_DEFS.forEach((def, i) => {
+      deck.push({ pairId: i, shape: def.shape, color: def.color });
+      deck.push({ pairId: i, shape: def.shape, color: def.color });
+    });
+    return shuffle(deck);
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = '';
+    cards.forEach((card, index) => {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.index = index;
+
+      const inner = document.createElement('div');
+      inner.className = 'tile-inner';
+
+      const back = document.createElement('div');
+      back.className = 'tile-face tile-back';
+
+      const front = document.createElement('div');
+      front.className = 'tile-face tile-front';
+      front.innerHTML = shapeSVG(card.shape, card.color);
+
+      inner.appendChild(back);
+      inner.appendChild(front);
+      tile.appendChild(inner);
+      tile.addEventListener('click', () => handleTileClick(index, tile));
+      boardEl.appendChild(tile);
+    });
+  }
+
+  function handleTileClick(index, tileEl){
+    if (!gameActive || busy) return;
+    if (tileEl.classList.contains('flipped') || tileEl.classList.contains('matched')) return;
+    if (flipped.length >= 2) return;
+
+    tileEl.classList.add('flipped');
+    flipped.push({ index, el: tileEl });
+
+    if (flipped.length === 2){
+      attempts++;
+      attemptsEl.textContent = attempts;
+      busy = true;
+      const [a, b] = flipped;
+      const isMatch = cards[a.index].pairId === cards[b.index].pairId;
+
+      setTimeout(() => {
+        if (isMatch){
+          a.el.classList.add('matched');
+          b.el.classList.add('matched');
+          matchedCount++;
+          matchesEl.textContent = matchedCount + ' / ' + TOTAL_PAIRS;
+          statusEl.textContent = 'Boa! Par encontrado';
+          if (matchedCount === TOTAL_PAIRS){
+            finishGame();
+          }
+        } else {
+          a.el.classList.remove('flipped');
+          b.el.classList.remove('flipped');
+          statusEl.textContent = 'Tente novamente';
+        }
+        flipped = [];
+        busy = false;
+      }, isMatch ? 500 : 900);
+    }
+  }
+
+  function finishGame(){
+    gameActive = false;
+    statusEl.textContent = 'Você encontrou todos os pares em ' + attempts + ' tentativas!';
+    startBtn.textContent = 'Jogar de novo';
+  }
+
+  function startGame(){
+    cards = buildDeck();
+    flipped = [];
+    matchedCount = 0;
+    attempts = 0;
+    busy = false;
+    gameActive = true;
+
+    attemptsEl.textContent = '0';
+    matchesEl.textContent = '0 / ' + TOTAL_PAIRS;
+    statusEl.textContent = 'Encontre os pares!';
+    startBtn.textContent = 'Reiniciar';
+
+    renderBoard();
+  }
+
+  startBtn.addEventListener('click', startGame);
+})();
+</script>
+
+</body>
+</html>

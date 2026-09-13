@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Jogo de Damas</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --board-light: #F3E4C8;
+    --board-dark: #B5824C;
+    --board-border: #7A5A32;
+    --piece-p1: #E6E6E6;
+    --piece-p1-edge: #9C9C9C;
+    --piece-p2: #C0392B;
+    --piece-p2-edge: #7A241C;
+    --highlight-select: #378ADD;
+    --highlight-move: rgba(99, 153, 34, 0.55);
+    --highlight-mustmove: #EF9F27;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --board-light: #D8C39C;
+    --board-dark: #6B4A28;
+    --board-border: #40290F;
+    --piece-p1: #EDEDED;
+    --piece-p1-edge: #A6A6A6;
+    --piece-p2: #D8493A;
+    --piece-p2-edge: #8C2E22;
+    --highlight-select: #5AA1E8;
+    --highlight-move: rgba(99, 153, 34, 0.65);
+    --highlight-mustmove: #F0B24A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .score-you { color: var(--piece-p2-edge); }
+  .score-cpu { color: var(--text-secondary); }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 10px;
+  }
+  .status.must-capture {
+    color: var(--highlight-mustmove);
+  }
+
+  .board-wrap {
+    width: 100%;
+    max-width: 380px;
+    margin: 0 auto 16px;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border: 3px solid var(--board-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cell.light { background: var(--board-light); }
+  .cell.dark { background: var(--board-dark); }
+  .cell.dark.playable { cursor: pointer; }
+
+  .cell.move-target::after {
+    content: "";
+    position: absolute;
+    width: 28%;
+    height: 28%;
+    border-radius: 50%;
+    background: var(--highlight-move);
+  }
+  .cell.selected {
+    box-shadow: inset 0 0 0 4px var(--highlight-select);
+  }
+  .cell.must-move {
+    box-shadow: inset 0 0 0 4px var(--highlight-mustmove);
+  }
+
+  .piece {
+    width: 76%;
+    height: 76%;
+    border-radius: 50%;
+    position: relative;
+    transition: transform .15s;
+  }
+  .piece.p1 {
+    background: radial-gradient(circle at 35% 30%, var(--piece-p1), var(--piece-p1-edge));
+    border: 2px solid var(--piece-p1-edge);
+  }
+  .piece.p2 {
+    background: radial-gradient(circle at 35% 30%, var(--piece-p2), var(--piece-p2-edge));
+    border: 2px solid var(--piece-p2-edge);
+  }
+  .piece.king::after {
+    content: "★";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: rgba(255, 215, 0, 0.9);
+    text-shadow: 0 0 2px rgba(0,0,0,0.4);
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .legend-dot.select { background: var(--highlight-select); }
+  .legend-dot.must { background: var(--highlight-mustmove); }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Jogo de Damas</h1>
+  <p class="subtitle">Você joga com as peças vermelhas</p>
+
+  <div class="scoreboard">
+    <span class="score-you" id="score-you">Você: 12 peças</span>
+    <span class="score-cpu" id="score-cpu">Computador: 12 peças</span>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="legend">
+    <span><i class="legend-dot select"></i> Peça escolhida</span>
+    <span><i class="legend-dot must"></i> Precisa comer</span>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('damas-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('damas-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const scoreYouEl = document.getElementById('score-you');
+  const scoreCpuEl = document.getElementById('score-cpu');
+
+  const SIZE = 8;
+  // board[row][col] = null | {player: 1|2, king: bool}
+  // player 1 = computador (topo), player 2 = você (embaixo)
+  let board = [];
+  let currentTurn = 2; // você começa
+  let selected = null; // {row, col}
+  let gameActive = false;
+  let mustCaptureCells = []; // lista de {row, col} que têm captura obrigatória disponível
+  let animating = false;
+
+  function cloneBoard(b){
+    return b.map(row => row.map(cell => cell ? { player: cell.player, king: cell.king } : null));
+  }
+
+  function setupBoard(){
+    board = [];
+    for (let r = 0; r < SIZE; r++){
+      const row = [];
+      for (let c = 0; c < SIZE; c++){
+        row.push(null);
+      }
+      board.push(row);
+    }
+    for (let r = 0; r < 3; r++){
+      for (let c = 0; c < SIZE; c++){
+        if ((r + c) % 2 === 1) board[r][c] = { player: 1, king: false };
+      }
+    }
+    for (let r = 5; r < 8; r++){
+      for (let c = 0; c < SIZE; c++){
+        if ((r + c) % 2 === 1) board[r][c] = { player: 2, king: false };
+      }
+    }
+  }
+
+  function inBounds(r, c){ return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
+
+  function getPieceMoves(b, r, c){
+    // retorna { simple: [{r,c}], capture: [{r,c, capturedR, capturedC}] }
+    const piece = b[r][c];
+    if (!piece) return { simple: [], capture: [] };
+    const dirs = piece.king
+      ? [[-1,-1],[-1,1],[1,-1],[1,1]]
+      : (piece.player === 2 ? [[-1,-1],[-1,1]] : [[1,-1],[1,1]]);
+
+    const simple = [];
+    const capture = [];
+
+    dirs.forEach(([dr, dc]) => {
+      const nr = r + dr, nc = c + dc;
+      if (inBounds(nr, nc) && !b[nr][nc]){
+        simple.push({ r: nr, c: nc });
+      }
+      const jr = r + dr*2, jc = c + dc*2;
+      if (inBounds(jr, jc) && !b[jr][jc] && inBounds(nr, nc) && b[nr][nc] && b[nr][nc].player !== piece.player){
+        capture.push({ r: jr, c: jc, capturedR: nr, capturedC: nc });
+      }
+    });
+
+    return { simple, capture };
+  }
+
+  function getAllMoves(b, player){
+    // retorna todas as peças do jogador com movimentos, separando se há captura obrigatória
+    let anyCapture = false;
+    const pieces = [];
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        const p = b[r][c];
+        if (p && p.player === player){
+          const moves = getPieceMoves(b, r, c);
+          if (moves.capture.length > 0) anyCapture = true;
+          pieces.push({ r, c, moves });
+        }
+      }
+    }
+    if (anyCapture){
+      return pieces
+        .filter(p => p.moves.capture.length > 0)
+        .map(p => ({ r: p.r, c: p.c, options: p.moves.capture, mustCapture: true }));
+    }
+    return pieces
+      .filter(p => p.moves.simple.length > 0)
+      .map(p => ({ r: p.r, c: p.c, options: p.moves.simple, mustCapture: false }));
+  }
+
+  function applyMove(b, from, to, capturedR, capturedC){
+    const piece = b[from.r][from.c];
+    b[from.r][from.c] = null;
+    if (capturedR !== undefined) b[capturedR][capturedC] = null;
+    const kinged = !piece.king && ((piece.player === 2 && to.r === 0) || (piece.player === 1 && to.r === SIZE - 1));
+    b[to.r][to.c] = { player: piece.player, king: piece.king || kinged };
+    return kinged;
+  }
+
+  function countPieces(b){
+    let p1 = 0, p2 = 0;
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        if (b[r][c]){
+          if (b[r][c].player === 1) p1++; else p2++;
+        }
+      }
+    }
+    return { p1, p2 };
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = '';
+    const currentMoves = gameActive && currentTurn === 2 ? getAllMoves(board, 2) : [];
+    mustCaptureCells = currentMoves.filter(m => m.mustCapture).map(m => ({ r: m.r, c: m.c }));
+
+    let selectedOptions = [];
+    if (selected){
+      const found = currentMoves.find(m => m.r === selected.r && m.c === selected.c);
+      if (found) selectedOptions = found.options;
+    }
+
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        const cell = document.createElement('div');
+        const isDark = (r + c) % 2 === 1;
+        cell.className = 'cell ' + (isDark ? 'dark' : 'light');
+        cell.dataset.r = r;
+        cell.dataset.c = c;
+
+        if (isDark) cell.classList.add('playable');
+
+        if (selected && selected.r === r && selected.c === c){
+          cell.classList.add('selected');
+        }
+        if (mustCaptureCells.some(m => m.r === r && m.c === c) && !(selected && selected.r === r && selected.c === c)){
+          cell.classList.add('must-move');
+        }
+        if (selectedOptions.some(o => o.r === r && o.c === c)){
+          cell.classList.add('move-target');
+        }
+
+        const piece = board[r][c];
+        if (piece){
+          const pieceEl = document.createElement('div');
+          pieceEl.className = 'piece p' + piece.player + (piece.king ? ' king' : '');
+          cell.appendChild(pieceEl);
+        }
+
+        if (isDark){
+          cell.addEventListener('click', () => handleCellClick(r, c));
+        }
+
+        boardEl.appendChild(cell);
+      }
+    }
+
+    const counts = countPieces(board);
+    scoreYouEl.textContent = 'Você: ' + counts.p2 + ' peça' + (counts.p2 === 1 ? '' : 's');
+    scoreCpuEl.textContent = 'Computador: ' + counts.p1 + ' peça' + (counts.p1 === 1 ? '' : 's');
+  }
+
+  function handleCellClick(r, c){
+    if (!gameActive || currentTurn !== 2 || animating) return;
+
+    const piece = board[r][c];
+    const currentMoves = getAllMoves(board, 2);
+
+    // clicou numa peça própria: seleciona (respeitando obrigatoriedade de captura)
+    if (piece && piece.player === 2){
+      const hasCapture = currentMoves.some(m => m.mustCapture);
+      const thisMove = currentMoves.find(m => m.r === r && m.c === c);
+      if (hasCapture && !thisMove){
+        statusEl.textContent = 'Essa peça não pode comer — escolha uma marcada em laranja!';
+        statusEl.classList.add('must-capture');
+        return;
+      }
+      if (!thisMove){
+        return; // peça sem movimentos possíveis
+      }
+      selected = { r, c };
+      statusEl.textContent = thisMove.mustCapture ? 'Escolha para onde pular e comer' : 'Escolha para onde mover';
+      statusEl.classList.remove('must-capture');
+      renderBoard();
+      return;
+    }
+
+    // clicou num destino válido
+    if (selected){
+      const thisMove = currentMoves.find(m => m.r === selected.r && m.c === selected.c);
+      if (thisMove){
+        const target = thisMove.options.find(o => o.r === r && o.c === c);
+        if (target){
+          performMove(selected, target);
+          return;
+        }
+      }
+    }
+  }
+
+  function performMove(from, target){
+    const kinged = applyMove(board, from, target, target.capturedR, target.capturedC);
+    selected = null;
+
+    // captura em cadeia: se foi captura e a mesma peça pode continuar comendo, mantém a vez
+    if (target.capturedR !== undefined){
+      const followUp = getPieceMoves(board, target.r, target.c);
+      if (followUp.capture.length > 0 && !kinged){
+        selected = { r: target.r, c: target.c };
+        statusEl.textContent = 'Você pode comer de novo! Continue';
+        statusEl.classList.remove('must-capture');
+        renderBoard();
+        checkGameEnd();
+        return;
+      }
+    }
+
+    renderBoard();
+    if (checkGameEnd()) return;
+
+    currentTurn = 1;
+    statusEl.textContent = 'Vez do computador...';
+    statusEl.classList.remove('must-capture');
+    setTimeout(computerTurn, 700);
+  }
+
+  function checkGameEnd(){
+    const counts = countPieces(board);
+    if (counts.p1 === 0){
+      endGame('Você ganhou! Todas as peças do computador foram capturadas.');
+      return true;
+    }
+    if (counts.p2 === 0){
+      endGame('O computador ganhou desta vez. Tente de novo!');
+      return true;
+    }
+    const p1Moves = getAllMoves(board, 1);
+    const p2Moves = getAllMoves(board, 2);
+    if (currentTurn === 1 && p1Moves.length === 0){
+      endGame('Você ganhou! O computador não tem mais jogadas.');
+      return true;
+    }
+    if (currentTurn === 2 && p2Moves.length === 0){
+      endGame('O computador ganhou — você não tem mais jogadas.');
+      return true;
+    }
+    return false;
+  }
+
+  function endGame(message){
+    gameActive = false;
+    statusEl.textContent = message;
+    statusEl.classList.remove('must-capture');
+    startBtn.textContent = 'Jogar de novo';
+  }
+
+  // ---- IA simples do computador ----
+  function evaluateBoard(b){
+    let score = 0;
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        const p = b[r][c];
+        if (!p) continue;
+        let value = p.king ? 3 : 1;
+        score += (p.player === 1 ? value : -value);
+      }
+    }
+    return score;
+  }
+
+  function computerTurn(){
+    if (!gameActive) return;
+    const moves = getAllMoves(board, 1);
+    if (moves.length === 0){ checkGameEnd(); return; }
+
+    // monta lista de jogadas completas (peça origem -> destino) e avalia cada uma
+    let bestScore = -Infinity;
+    let bestChoices = [];
+
+    moves.forEach(m => {
+      m.options.forEach(opt => {
+        const testBoard = cloneBoard(board);
+        applyMove(testBoard, { r: m.r, c: m.c }, opt, opt.capturedR, opt.capturedC);
+        const score = evaluateBoard(testBoard) + rand(-0.3, 0.3);
+        if (score > bestScore){
+          bestScore = score;
+          bestChoices = [{ from: { r: m.r, c: m.c }, to: opt }];
+        } else if (Math.abs(score - bestScore) < 0.001){
+          bestChoices.push({ from: { r: m.r, c: m.c }, to: opt });
+        }
+      });
+    });
+
+    const choice = bestChoices[randInt(0, bestChoices.length - 1)];
+    executeComputerMove(choice.from, choice.to);
+  }
+
+  function executeComputerMove(from, target){
+    const kinged = applyMove(board, from, target, target.capturedR, target.capturedC);
+    renderBoard();
+
+    if (target.capturedR !== undefined && !kinged){
+      const followUp = getPieceMoves(board, target.r, target.c);
+      if (followUp.capture.length > 0){
+        // escolhe a melhor captura em cadeia
+        let best = null, bestScore = -Infinity;
+        followUp.capture.forEach(opt => {
+          const testBoard = cloneBoard(board);
+          applyMove(testBoard, { r: target.r, c: target.c }, opt, opt.capturedR, opt.capturedC);
+          const score = evaluateBoard(testBoard);
+          if (score > bestScore){ bestScore = score; best = opt; }
+        });
+        setTimeout(() => executeComputerMove({ r: target.r, c: target.c }, best), 500);
+        return;
+      }
+    }
+
+    if (checkGameEnd()) return;
+
+    currentTurn = 2;
+    const hasCapture = getAllMoves(board, 2).some(m => m.mustCapture);
+    statusEl.textContent = hasCapture ? 'Sua vez! Você precisa comer uma peça' : 'Sua vez!';
+    statusEl.classList.toggle('must-capture', hasCapture);
+    renderBoard();
+  }
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function startGame(){
+    setupBoard();
+    currentTurn = 2;
+    selected = null;
+    gameActive = true;
+    const hasCapture = getAllMoves(board, 2).some(m => m.mustCapture);
+    statusEl.textContent = hasCapture ? 'Sua vez! Você precisa comer uma peça' : 'Sua vez! Escolha uma peça vermelha';
+    statusEl.classList.toggle('must-capture', hasCapture);
+    startBtn.textContent = 'Reiniciar jogo';
+    renderBoard();
+  }
+
+  startBtn.addEventListener('click', startGame);
+
+  // desenho inicial estático
+  setupBoard();
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>

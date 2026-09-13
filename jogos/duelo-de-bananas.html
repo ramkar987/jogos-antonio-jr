@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Duelo de Bananas</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --sky-top: #AEDFF7;
+    --sky-bottom: #EAF6FC;
+    --p1: #378ADD;
+    --p2: #E24B4A;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --sky-top: #16233A;
+    --sky-bottom: #2B3A55;
+    --p1: #5AA1E8;
+    --p2: #F09595;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .score-p1 { color: var(--p1); }
+  .score-p2 { color: var(--p2); }
+
+  .turn-status {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 10px;
+  }
+
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+    border: 2px solid var(--key-border);
+    margin-bottom: 16px;
+    touch-action: none;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .control-row label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    width: 66px;
+    text-align: left;
+    flex-shrink: 0;
+  }
+  .control-row input[type="range"] {
+    flex: 1;
+  }
+  .control-row .value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    width: 46px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .wind-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .wind-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+  #wind-canvas {
+    display: block;
+  }
+
+  .mode-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .mode-btn {
+    width: 100%;
+    padding: 12px 8px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .mode-btn:active { transform: scale(0.97); }
+  .mode-btn.selected {
+    border-color: var(--btn-bg);
+    color: var(--title);
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+  .start-btn:disabled { opacity: 0.5; cursor: default; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Duelo de Bananas</h1>
+  <p class="subtitle">Ajuste ângulo e velocidade e acerte o outro jogador</p>
+
+  <div class="scoreboard">
+    <span class="score-p1" id="score-p1">Jogador 1: 0</span>
+    <span class="score-p2" id="score-p2">Jogador 2: 0</span>
+  </div>
+
+  <div class="turn-status" id="turn-status">Toque em iniciar</div>
+
+  <canvas id="canvas" width="900" height="520"></canvas>
+
+  <div class="wind-box">
+    <span class="wind-label">Vento:</span>
+    <canvas id="wind-canvas" width="40" height="18"></canvas>
+  </div>
+
+  <div class="controls">
+    <div class="control-row">
+      <label for="angle">Ângulo</label>
+      <input type="range" id="angle" min="0" max="90" value="45">
+      <span class="value" id="angle-value">45°</span>
+    </div>
+    <div class="control-row">
+      <label for="power">Força</label>
+      <input type="range" id="power" min="10" max="100" value="55">
+      <span class="value" id="power-value">55</span>
+    </div>
+  </div>
+
+  <button class="start-btn" id="fire">Iniciar jogo</button>
+
+  <div class="mode-select" id="mode-select">
+    <button class="mode-btn selected" id="mode-2p" data-mode="2p">👦 👧 2 jogadores</button>
+    <button class="mode-btn" id="mode-cpu" data-mode="cpu">👦 🤖 Contra o computador</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('banana-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('banana-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+    if (typeof drawWindArrow === 'function') drawWindArrow();
+  });
+
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const angleInput = document.getElementById('angle');
+  const powerInput = document.getElementById('power');
+  const angleValue = document.getElementById('angle-value');
+  const powerValue = document.getElementById('power-value');
+  const fireBtn = document.getElementById('fire');
+  const turnStatus = document.getElementById('turn-status');
+  const windCanvas = document.getElementById('wind-canvas');
+  const windCtx = windCanvas.getContext('2d');
+  const scoreP1El = document.getElementById('score-p1');
+  const scoreP2El = document.getElementById('score-p2');
+  const modeSelect = document.getElementById('mode-select');
+  const mode2pBtn = document.getElementById('mode-2p');
+  const modeCpuBtn = document.getElementById('mode-cpu');
+
+  let vsComputer = false;
+
+  function selectMode(mode){
+    vsComputer = (mode === 'cpu');
+    mode2pBtn.classList.toggle('selected', !vsComputer);
+    modeCpuBtn.classList.toggle('selected', vsComputer);
+    scoreP2El.textContent = (vsComputer ? 'Computador: ' : 'Jogador 2: ') + scores[1];
+  }
+  mode2pBtn.addEventListener('click', () => selectMode('2p'));
+  modeCpuBtn.addEventListener('click', () => selectMode('cpu'));
+
+  const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  let buildings = [];
+  let players = []; // {x, y, color, alive}
+  let currentPlayer = 0; // 0 ou 1
+  let scores = [0, 0];
+  let wind = 0;
+  let banana = null; // {x,y,vx,vy,active}
+  let gameActive = false;
+  let animating = false;
+
+  let playerSettings = [
+    { angle: 45, power: 55 },
+    { angle: 45, power: 55 }
+  ];
+
+  angleInput.addEventListener('input', () => {
+    angleValue.textContent = angleInput.value + '°';
+    playerSettings[currentPlayer].angle = parseFloat(angleInput.value);
+  });
+  powerInput.addEventListener('input', () => {
+    powerValue.textContent = powerInput.value;
+    playerSettings[currentPlayer].power = parseFloat(powerInput.value);
+  });
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function generateBuildings(){
+    buildings = [];
+    const count = 9;
+    const bw = W / count;
+    let x = 0;
+    for (let i = 0; i < count; i++){
+      const height = rand(H * 0.25, H * 0.6);
+      buildings.push({ x: x, w: bw, h: height, y: H - height, splats: [] });
+      x += bw;
+    }
+  }
+
+  function placePlayers(){
+    // jogador 1 no prédio mais à esquerda dentre os primeiros 2, jogador 2 nos últimos 2
+    const b1 = buildings[randInt(0, 1)];
+    const b2 = buildings[randInt(buildings.length - 2, buildings.length - 1)];
+    players = [
+      { x: b1.x + b1.w / 2, y: b1.y, color: cssVar('--p1'), alive: true },
+      { x: b2.x + b2.w / 2, y: b2.y, color: cssVar('--p2'), alive: true }
+    ];
+  }
+
+  function newWind(){
+    wind = rand(-0.05, 0.05);
+    drawWindArrow();
+  }
+
+  function drawWindArrow(){
+    const w = windCanvas.width, h = windCanvas.height;
+    windCtx.clearRect(0, 0, w, h);
+
+    const strength = Math.abs(wind);
+    const maxStrength = 0.05;
+    const ratio = Math.min(strength / maxStrength, 1);
+
+    // sem vento: só uma nuvem paradinha
+    if (ratio < 0.06){
+      drawCloud(w/2, h/2, 0.4);
+      return;
+    }
+
+    const dir = wind > 0 ? 1 : -1;
+    const arrowLen = 6 + ratio * 14;
+    const cx = w / 2;
+    const cy = h / 2 + 2;
+
+    const arrowColor = document.documentElement.getAttribute('data-theme') === 'dark' ? '#D3D1C7' : '#5F5E5A';
+    windCtx.strokeStyle = arrowColor;
+    windCtx.fillStyle = arrowColor;
+    windCtx.lineWidth = 1.5 + ratio * 1;
+    windCtx.lineCap = 'round';
+
+    windCtx.save();
+    windCtx.translate(cx, cy);
+    windCtx.scale(dir, 1);
+
+    // linha da seta
+    windCtx.beginPath();
+    windCtx.moveTo(-arrowLen/2, 0);
+    windCtx.lineTo(arrowLen/2, 0);
+    windCtx.stroke();
+
+    // ponta da seta
+    windCtx.beginPath();
+    windCtx.moveTo(arrowLen/2, 0);
+    windCtx.lineTo(arrowLen/2 - 4, -3.5);
+    windCtx.lineTo(arrowLen/2 - 4, 3.5);
+    windCtx.closePath();
+    windCtx.fill();
+
+    windCtx.restore();
+
+    drawCloud(cx, cy - 7, 0.3);
+  }
+
+  function drawCloud(cx, cy, scale){
+    windCtx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? '#5F5E5A' : '#D3D1C7';
+    windCtx.beginPath();
+    windCtx.arc(cx - 7*scale, cy, 5*scale, 0, Math.PI*2);
+    windCtx.arc(cx, cy - 2.5*scale, 6*scale, 0, Math.PI*2);
+    windCtx.arc(cx + 7*scale, cy, 5*scale, 0, Math.PI*2);
+    windCtx.fill();
+  }
+
+  function drawSky(){
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, cssVar('--sky-top'));
+    grad.addColorStop(1, cssVar('--sky-bottom'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawBuildings(){
+    buildings.forEach((b, i) => {
+      const shade = 40 + (i % 3) * 12;
+      ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark'
+        ? 'rgb(' + (shade+20) + ',' + (shade+18) + ',' + (shade+30) + ')'
+        : 'rgb(' + (210 - shade) + ',' + (205 - shade) + ',' + (195 - shade) + ')';
+      ctx.fillRect(b.x + 2, b.y, b.w - 4, b.h);
+      // janelas
+      ctx.fillStyle = 'rgba(255, 220, 120, 0.55)';
+      const winCols = Math.max(2, Math.floor(b.w / 22));
+      const winRows = Math.max(2, Math.floor(b.h / 26));
+      for (let r = 0; r < winRows; r++){
+        for (let c = 0; c < winCols; c++){
+          if (Math.random() < 0.4) continue;
+          const wx = b.x + 8 + c * (b.w - 16) / winCols;
+          const wy = b.y + 10 + r * (b.h - 20) / winRows;
+          ctx.fillRect(wx, wy, 6, 8);
+        }
+      }
+      // manchas de bananas que acertaram este prédio
+      if (b.splats && b.splats.length){
+        ctx.fillStyle = 'rgba(120, 80, 20, 0.55)';
+        b.splats.forEach(s => {
+          ctx.beginPath();
+          ctx.arc(b.x + s.x, b.y + s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+    });
+  }
+
+  function drawPlayer(p){
+    if (!p.alive) return;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y - 10, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(p.x - 6, p.y - 2, 12, 14);
+  }
+
+  function drawBanana(){
+    if (!banana || !banana.active) return;
+    ctx.save();
+    ctx.translate(banana.x, banana.y);
+    ctx.rotate(Math.atan2(banana.vy, banana.vx));
+    ctx.fillStyle = '#EF9F27';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 7, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawExplosion(x, y, radius){
+    ctx.fillStyle = 'rgba(226, 75, 74, 0.85)';
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function render(){
+    drawSky();
+    drawBuildings();
+    players.forEach(drawPlayer);
+    drawBanana();
+  }
+
+  function pointInBuilding(x, y){
+    for (const b of buildings){
+      if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= H){
+        return b;
+      }
+    }
+    return null;
+  }
+
+  function hitsPlayer(x, y, p){
+    if (!p.alive) return false;
+    const dx = x - p.x;
+    const dy = y - (p.y - 8);
+    return Math.sqrt(dx*dx + dy*dy) < 14;
+  }
+
+  function craterBuilding(b, x, radius){
+    // recorta um "buraco" simples: reduz a altura localmente empurrando pra baixo não é trivial em retângulo puro,
+    // então simulamos com uma pequena marca visual (não altera colisão futura, mantém simples para o público infantil)
+  }
+
+  function endTurnCheck(){
+    animating = false;
+    if (!players[0].alive || !players[1].alive){
+      const winnerIdx = players[0].alive ? 0 : 1;
+      scores[winnerIdx]++;
+      scoreP1El.textContent = 'Jogador 1: ' + scores[0];
+      scoreP2El.textContent = 'Jogador 2: ' + scores[1];
+      turnStatus.textContent = (winnerIdx === 0 ? 'Jogador 1' : (vsComputer ? 'O computador' : 'Jogador 2')) + ' venceu a rodada!';
+      gameActive = false;
+      fireBtn.textContent = 'Próxima rodada';
+      fireBtn.disabled = false;
+      return;
+    }
+    currentPlayer = 1 - currentPlayer;
+    if (vsComputer && currentPlayer === 1){
+      turnStatus.textContent = 'O computador está mirando...';
+      fireBtn.disabled = true;
+      setTimeout(computerTurn, 1000);
+    } else {
+      turnStatus.textContent = vsComputer ? 'Sua vez, jogador 1!' : 'Vez do jogador ' + (currentPlayer + 1);
+      fireBtn.disabled = false;
+      restoreSliders(currentPlayer);
+    }
+  }
+
+  function restoreSliders(idx){
+    angleInput.value = playerSettings[idx].angle;
+    powerInput.value = playerSettings[idx].power;
+    angleValue.textContent = angleInput.value + '°';
+    powerValue.textContent = powerInput.value;
+  }
+
+  function computerTurn(){
+    if (!gameActive) return;
+    const shooter = players[1];
+    const target = players[0];
+
+    // estimativa simples de ângulo/força com um pouco de erro (fica mais fácil pra criança)
+    const dx = Math.abs(target.x - shooter.x);
+    const distanceRatio = Math.min(dx / W, 1);
+    let guessAngle = 35 + distanceRatio * 25 + rand(-8, 8);
+    let guessPower = 40 + distanceRatio * 45 + rand(-10, 10);
+    guessAngle = Math.max(15, Math.min(80, guessAngle));
+    guessPower = Math.max(20, Math.min(95, guessPower));
+
+    playerSettings[1].angle = Math.round(guessAngle);
+    playerSettings[1].power = Math.round(guessPower);
+
+    fire();
+  }
+
+  function animateBanana(){
+    if (!banana.active){ return; }
+
+    const steps = 3;
+    for (let s = 0; s < steps; s++){
+      banana.vy += 0.18; // gravidade
+      banana.vx += wind;
+      banana.x += banana.vx;
+      banana.y += banana.vy;
+    }
+
+    render();
+    drawBanana();
+
+    // fora da tela
+    if (banana.x < -20 || banana.x > W + 20 || banana.y > H + 20){
+      banana.active = false;
+      turnStatus.textContent = 'A banana saiu da tela!';
+      setTimeout(endTurnCheck, 500);
+      return;
+    }
+
+    // colisão com prédio
+    const b = pointInBuilding(banana.x, banana.y);
+    if (b){
+      banana.active = false;
+      b.splats.push({ x: banana.x - b.x, y: banana.y - b.y, r: rand(9, 13) });
+      drawExplosion(banana.x, banana.y, 16);
+      setTimeout(endTurnCheck, 500);
+      return;
+    }
+
+    // colisão com jogadores (não pode acertar quem atirou)
+    const targetIdx = 1 - currentPlayer;
+    if (hitsPlayer(banana.x, banana.y, players[targetIdx])){
+      banana.active = false;
+      players[targetIdx].alive = false;
+      drawExplosion(banana.x, banana.y, 22);
+      turnStatus.textContent = 'Acertou!';
+      setTimeout(endTurnCheck, 600);
+      return;
+    }
+
+    requestAnimationFrame(animateBanana);
+  }
+
+  function fire(){
+    if (!gameActive || animating) return;
+    animating = true;
+    fireBtn.disabled = true;
+
+    const shooter = players[currentPlayer];
+    const angleDeg = playerSettings[currentPlayer].angle;
+    const power = playerSettings[currentPlayer].power;
+
+    // jogador 1 atira para a direita (ângulo 0-90 sobe da horizontal),
+    // jogador 2 atira para a esquerda (espelhado)
+    const dir = currentPlayer === 0 ? 1 : -1;
+    const angleRad = angleDeg * Math.PI / 180;
+    const speed = power * 0.11;
+
+    banana = {
+      x: shooter.x + dir * 12,
+      y: shooter.y - 14,
+      vx: dir * Math.cos(angleRad) * speed,
+      vy: -Math.sin(angleRad) * speed,
+      active: true
+    };
+
+    turnStatus.textContent = 'Banana no ar...';
+    requestAnimationFrame(animateBanana);
+  }
+
+  function setupRound(){
+    generateBuildings();
+    placePlayers();
+    newWind();
+    banana = null;
+    animating = false;
+    render();
+  }
+
+  function playerLabel(idx){
+    if (idx === 1 && vsComputer) return 'computador';
+    return 'jogador ' + (idx + 1);
+  }
+
+  function startGame(){
+    gameActive = true;
+    currentPlayer = 0;
+    playerSettings = [
+      { angle: 45, power: 55 },
+      { angle: 45, power: 55 }
+    ];
+    setupRound();
+    turnStatus.textContent = vsComputer ? 'Sua vez, jogador 1!' : 'Vez do jogador 1';
+    fireBtn.textContent = 'Atirar';
+    fireBtn.disabled = false;
+    modeSelect.classList.add('hidden');
+    restoreSliders(0);
+  }
+
+  fireBtn.addEventListener('click', () => {
+    if (!gameActive){
+      startGame();
+    } else {
+      fire();
+    }
+  });
+
+  // desenho inicial estático
+  generateBuildings();
+  placePlayers();
+  render();
+  drawWindArrow();
+})();
+</script>
+
+</body>
+</html>

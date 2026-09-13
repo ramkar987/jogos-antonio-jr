@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fábrica de Pintinhos</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --field-bg: #E8F5D8;
+    --field-border: #C9BB9A;
+    --nest-bg: #D8B978;
+    --nest-border: #A6762F;
+    --egg-shell: #FFF8EC;
+    --egg-shell-edge: #E1DDCF;
+    --coin: #EF9F27;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --field-bg: #22301C;
+    --field-border: #3E3A2E;
+    --nest-bg: #6B4A28;
+    --nest-border: #4A3319;
+    --egg-shell: #322F28;
+    --egg-shell-edge: #47443B;
+    --coin: #D89530;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    z-index: 6;
+  }
+  h1 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .status {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 20px;
+    margin-bottom: 10px;
+  }
+
+  .field-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1.1;
+    max-height: 62vh;
+    margin: 0 auto 16px;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    background: var(--field-bg);
+    border: 2px solid var(--field-border);
+    touch-action: none;
+  }
+
+  .nest {
+    position: absolute;
+    left: 50%;
+    bottom: 4%;
+    transform: translateX(-50%);
+    width: 26%;
+    aspect-ratio: 1 / 1;
+    background: var(--nest-bg);
+    border: 3px solid var(--nest-border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    z-index: 1;
+  }
+
+  .egg-obj, .chicken-obj {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    user-select: none;
+    z-index: 2;
+  }
+  .egg-obj svg, .chicken-obj svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+  .egg-obj { cursor: pointer; }
+  .chicken-obj { cursor: grab; }
+  .chicken-obj.dragging { cursor: grabbing; z-index: 10; }
+
+  .merge-pop {
+    position: absolute;
+    font-size: 26px;
+    pointer-events: none;
+    animation: pop-fade 0.6s ease-out forwards;
+    z-index: 20;
+  }
+  @keyframes pop-fade {
+    0% { transform: translateY(0) scale(0.6); opacity: 0; }
+    30% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+    100% { transform: translateY(-40px) scale(1); opacity: 0; }
+  }
+
+  .species-track {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .species-chip {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--key-bg);
+    border: 2px solid var(--key-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    opacity: 0.3;
+  }
+  .species-chip.unlocked { opacity: 1; border-color: var(--coin); }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Fábrica de Pintinhos</h1>
+  <p class="subtitle">Toque nos ovos para chocar e arraste galinhas iguais para juntar!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">🪙 Moedas</div>
+      <div class="stat-value" id="coin-count">0</div>
+    </div>
+    <div>
+      <div class="stat-label">Descobertas</div>
+      <div class="stat-value" id="discovered">1 / 10</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="species-track" id="species-track"></div>
+
+  <div class="field-wrap" id="field-wrap">
+    <div class="nest" id="nest">🪺</div>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('pintinhos-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('pintinhos-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+  function playCrack(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(300, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, c.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, c.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.15);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + 0.15);
+  }
+  function playMerge(){
+    const c = getActx();
+    [0,4,7].forEach((semi,i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 440 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i*0.06;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.22, t0+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0+0.2);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0+0.2);
+    });
+  }
+  function playCoin(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(990, c.currentTime+0.1);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.2, c.currentTime+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime+0.18);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime+0.18);
+  }
+
+  const fieldWrap = document.getElementById('field-wrap');
+  const nestEl = document.getElementById('nest');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const coinCountEl = document.getElementById('coin-count');
+  const discoveredEl = document.getElementById('discovered');
+  const speciesTrackEl = document.getElementById('species-track');
+
+  const SPECIES = [
+    { level: 1,  emoji: '🐤', name: 'Pintinho',       color: '#F7D24C' },
+    { level: 2,  emoji: '🐥', name: 'Pintinho Feliz',  color: '#F0B24A' },
+    { level: 3,  emoji: '🐔', name: 'Galinha',         color: '#E8896B' },
+    { level: 4,  emoji: '🐓', name: 'Galo',            color: '#D8493A' },
+    { level: 5,  emoji: '🦃', name: 'Peru',            color: '#A6762F' },
+    { level: 6,  emoji: '🦆', name: 'Pato',            color: '#5FA8D8' },
+    { level: 7,  emoji: '🦢', name: 'Cisne',           color: '#D8D3C4' },
+    { level: 8,  emoji: '🦅', name: 'Águia',           color: '#8C6636' },
+    { level: 9,  emoji: '🦚', name: 'Pavão Real',       color: '#378ADD' },
+    { level: 10, emoji: '🐉', name: 'Dragão Dourado',   color: '#EF9F27' }
+  ];
+
+  const EGG_RADIUS = 28;
+  let objects = [];
+  let nextId = 1;
+  let coinCount = 0;
+  let discoveredLevels = new Set([1]);
+  let gameActive = false;
+  let dragState = null;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function fieldSize(){
+    const rect = fieldWrap.getBoundingClientRect();
+    return { w: rect.width, h: rect.height };
+  }
+
+  function eggSVG(){
+    return '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="55" rx="30" ry="38" fill="var(--egg-shell)" stroke="var(--egg-shell-edge)" stroke-width="3"/>' +
+      '<path d="M35 35 L45 50 L38 55 L48 68" stroke="var(--egg-shell-edge)" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg>';
+  }
+
+  function chickenSVG(species){
+    return '<svg viewBox="0 0 100 100">' +
+      '<circle cx="50" cy="55" r="32" fill="' + species.color + '"/>' +
+      '<circle cx="38" cy="46" r="4" fill="#2C2C2A"/>' +
+      '<circle cx="62" cy="46" r="4" fill="#2C2C2A"/>' +
+      '<path d="M46 55 L54 55 L50 62 Z" fill="#EF9F27"/>' +
+      '<ellipse cx="50" cy="20" rx="10" ry="8" fill="' + species.color + '"/>' +
+      '<circle cx="50" cy="10" r="4" fill="#E24B4A"/>' +
+      '<text x="50" y="90" font-size="14" text-anchor="middle">' + species.emoji + '</text>' +
+      '</svg>';
+  }
+
+  function findFreePosition(size){
+    const { w, h } = fieldSize();
+    const margin = size/2 + 6;
+    for (let i = 0; i < 30; i++){
+      const x = rand(margin, w - margin);
+      const y = rand(margin, h - margin*2.2);
+      const collides = objects.some(o => {
+        const dx = x - o.x, dy = y - o.y;
+        return Math.sqrt(dx*dx + dy*dy) < size*0.9;
+      });
+      if (!collides) return { x, y };
+    }
+    return { x: rand(margin, w - margin), y: rand(margin, h - margin*2.2) };
+  }
+
+  function spawnEgg(){
+    const size = EGG_RADIUS * 2;
+    const pos = findFreePosition(size);
+    const el = document.createElement('div');
+    el.className = 'egg-obj';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.innerHTML = eggSVG();
+
+    const obj = { id: nextId++, type: 'egg', x: pos.x, y: pos.y, el };
+    positionObj(obj, size);
+    fieldWrap.appendChild(el);
+    objects.push(obj);
+
+    el.addEventListener('click', () => hatchEgg(obj));
+  }
+
+  function positionObj(obj, size){
+    obj.el.style.left = (obj.x - size/2) + 'px';
+    obj.el.style.top = (obj.y - size/2) + 'px';
+  }
+
+  function hatchEgg(obj){
+    if (!gameActive) return;
+    playCrack();
+    obj.el.remove();
+    objects = objects.filter(o => o.id !== obj.id);
+    spawnChicken(1, obj.x, obj.y);
+    statusEl.textContent = 'Um pintinho nasceu! Arraste iguais para juntar';
+    ensureEggAvailable();
+  }
+
+  function spawnChicken(level, x, y){
+    const species = SPECIES[level - 1];
+    const size = EGG_RADIUS * 2 + (level-1)*4;
+    const el = document.createElement('div');
+    el.className = 'chicken-obj';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.innerHTML = chickenSVG(species);
+
+    const obj = { id: nextId++, type: 'chicken', level, x, y, el };
+    positionObj(obj, size);
+    fieldWrap.appendChild(el);
+    objects.push(obj);
+
+    discoveredLevels.add(level);
+    updateDiscoveredLabel();
+
+    el.addEventListener('mousedown', (e) => startDrag(obj, e));
+    el.addEventListener('touchstart', (e) => startDrag(obj, e), { passive: true });
+  }
+
+  function updateDiscoveredLabel(){
+    discoveredEl.textContent = discoveredLevels.size + ' / ' + SPECIES.length;
+    Array.from(speciesTrackEl.children).forEach((chip, idx) => {
+      chip.classList.toggle('unlocked', discoveredLevels.has(idx+1));
+    });
+  }
+
+  function ensureEggAvailable(){
+    if (!gameActive) return;
+    const hasEgg = objects.some(o => o.type === 'egg');
+    if (!hasEgg){
+      setTimeout(() => { if (gameActive) spawnEgg(); }, 500);
+    }
+  }
+
+  function renderSpeciesTrack(){
+    speciesTrackEl.innerHTML = '';
+    SPECIES.forEach(s => {
+      const chip = document.createElement('div');
+      chip.className = 'species-chip' + (discoveredLevels.has(s.level) ? ' unlocked' : '');
+      chip.textContent = discoveredLevels.has(s.level) ? s.emoji : '❓';
+      speciesTrackEl.appendChild(chip);
+    });
+  }
+
+  function getPointFromEvent(e){
+    const rect = fieldWrap.getBoundingClientRect();
+    if (e.touches && e.touches.length > 0){
+      return { x: e.touches[0].clientX - rect.left, y: e.touches[0].clientY - rect.top };
+    }
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function startDrag(obj, e){
+    if (!gameActive) return;
+    const p = getPointFromEvent(e);
+    dragState = { obj, offsetX: p.x - obj.x, offsetY: p.y - obj.y };
+    obj.el.classList.add('dragging');
+  }
+
+  function onMove(e){
+    if (!dragState) return;
+    const p = getPointFromEvent(e);
+    const obj = dragState.obj;
+    obj.x = p.x - dragState.offsetX;
+    obj.y = p.y - dragState.offsetY;
+    const size = parseFloat(obj.el.style.width);
+    positionObj(obj, size);
+  }
+
+  function onUp(){
+    if (!dragState) return;
+    const obj = dragState.obj;
+    obj.el.classList.remove('dragging');
+
+    const target = objects.find(o => o.id !== obj.id && o.type === 'chicken' && o.level === obj.level && overlaps(obj, o));
+
+    const nestRect = nestEl.getBoundingClientRect();
+    const fieldRect = fieldWrap.getBoundingClientRect();
+    const nestCenter = {
+      x: nestRect.left - fieldRect.left + nestRect.width/2,
+      y: nestRect.top - fieldRect.top + nestRect.height/2
+    };
+    const distToNest = Math.sqrt(Math.pow(obj.x-nestCenter.x,2) + Math.pow(obj.y-nestCenter.y,2));
+
+    if (target){
+      mergeChickens(obj, target);
+    } else if (distToNest < nestRect.width * 0.55){
+      collectAtNest(obj);
+    }
+
+    dragState = null;
+  }
+
+  function overlaps(a, b){
+    const sizeA = parseFloat(a.el.style.width);
+    const sizeB = parseFloat(b.el.style.width);
+    const dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx*dx + dy*dy) < (sizeA + sizeB) * 0.35;
+  }
+
+  function mergeChickens(a, b){
+    const newLevel = Math.min(a.level + 1, SPECIES.length);
+    const midX = (a.x + b.x) / 2;
+    const midY = (a.y + b.y) / 2;
+
+    playMerge();
+    showMergePop(midX, midY, SPECIES[newLevel-1].emoji);
+
+    [a, b].forEach(o => { o.el.remove(); });
+    objects = objects.filter(o => o.id !== a.id && o.id !== b.id);
+
+    if (a.level >= SPECIES.length){
+      addCoins(5, midX, midY);
+      ensureEggAvailable();
+      return;
+    }
+
+    spawnChicken(newLevel, midX, midY);
+    statusEl.textContent = 'Virou ' + SPECIES[newLevel-1].name + '! Continue juntando';
+    ensureEggAvailable();
+  }
+
+  function showMergePop(x, y, emoji){
+    const pop = document.createElement('div');
+    pop.className = 'merge-pop';
+    pop.textContent = '✨' + emoji;
+    pop.style.left = (x - 20) + 'px';
+    pop.style.top = (y - 20) + 'px';
+    fieldWrap.appendChild(pop);
+    setTimeout(() => pop.remove(), 600);
+  }
+
+  function collectAtNest(obj){
+    playCoin();
+    const reward = obj.level;
+    addCoins(reward, obj.x, obj.y);
+    obj.el.remove();
+    objects = objects.filter(o => o.id !== obj.id);
+    statusEl.textContent = 'Coletou ' + reward + ' moeda' + (reward > 1 ? 's' : '') + '! Bora chocar mais ovos';
+
+    const eggsToSpawn = 1 + (Math.random() < 0.4 ? 1 : 0);
+    for (let i = 0; i < eggsToSpawn; i++){
+      setTimeout(spawnEgg, 200 + i*150);
+    }
+    setTimeout(ensureEggAvailable, 600);
+  }
+
+  function addCoins(amount, x, y){
+    coinCount += amount;
+    coinCountEl.textContent = coinCount;
+    showMergePop(x, y, '🪙x' + amount);
+  }
+
+  fieldWrap.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  fieldWrap.addEventListener('touchmove', (e) => { onMove(e); }, { passive: true });
+  window.addEventListener('touchend', onUp);
+
+  function clearField(){
+    objects.forEach(o => o.el.remove());
+    objects = [];
+  }
+
+  function startGame(){
+    clearField();
+    coinCount = 0;
+    discoveredLevels = new Set([1]);
+    coinCountEl.textContent = '0';
+    gameActive = true;
+    statusEl.textContent = 'Toque nos ovos para chocar novos pintinhos!';
+    startBtn.textContent = 'Reiniciar';
+
+    renderSpeciesTrack();
+    updateDiscoveredLabel();
+
+    for (let i = 0; i < 4; i++){
+      setTimeout(spawnEgg, i * 150);
+    }
+  }
+
+  startBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    startGame();
+  });
+
+  // desenho inicial estático
+  renderSpeciesTrack();
+})();
+</script>
+
+</body>
+</html>

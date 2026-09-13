@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cara Maluca</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --face-bg: #FAF8F2;
+    --face-border: #E1DDCF;
+    --timer-track: #E1DDCF;
+    --timer-fill: #639922;
+    --timer-fill-warn: #EF9F27;
+    --timer-fill-danger: #E24B4A;
+    --option-selected: #378ADD;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --face-bg: #322F28;
+    --face-border: #47443B;
+    --timer-track: #47443B;
+    --timer-fill: #7BAF3A;
+    --timer-fill-warn: #F0B24A;
+    --timer-fill-danger: #F09595;
+    --option-selected: #5AA1E8;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 10px;
+  }
+
+  .timer-track {
+    width: 100%;
+    height: 10px;
+    background: var(--timer-track);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .timer-fill {
+    height: 100%;
+    width: 100%;
+    background: var(--timer-fill);
+    border-radius: 6px;
+    transition: width .1s linear, background .3s;
+  }
+
+  .face-stage {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 18px;
+    background: var(--face-bg);
+    border: 2px solid var(--face-border);
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .face-stage svg { width: 100%; height: 100%; display: block; }
+  .face-stage.jumping svg {
+    animation: jump-away 0.7s ease-in forwards;
+  }
+  @keyframes jump-away {
+    0%   { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+    30%  { transform: translateY(-40px) scale(1.05) rotate(-8deg); opacity: 1; }
+    100% { transform: translateY(220px) scale(0.7) rotate(25deg); opacity: 0; }
+  }
+
+  .options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .option-btn {
+    aspect-ratio: 1 / 1;
+    background: var(--key-bg);
+    border: 2px solid var(--key-border);
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 8px;
+    transition: border-color .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .option-btn svg { width: 100%; height: 100%; display: block; }
+  .option-btn:active { transform: scale(0.94); }
+  .option-btn.chosen { border-color: var(--option-selected); border-width: 3px; }
+
+  .piece-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Cara Maluca</h1>
+  <p class="subtitle">Escolha uma peça antes que o tempo acabe!</p>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="timer-track">
+    <div class="timer-fill" id="timer-fill"></div>
+  </div>
+
+  <div class="face-stage" id="face-stage"></div>
+
+  <div class="piece-label" id="piece-label"></div>
+  <div class="options" id="options"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('caramaluca-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('caramaluca-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const statusEl = document.getElementById('status');
+  const timerFill = document.getElementById('timer-fill');
+  const faceStage = document.getElementById('face-stage');
+  const pieceLabel = document.getElementById('piece-label');
+  const optionsEl = document.getElementById('options');
+  const startBtn = document.getElementById('start');
+
+  const TIME_PER_PIECE = 20; // segundos
+  const SKIN = '#F4C29B';
+
+  // Sequência de peças do rosto, cada uma com 3 opções (SVG fragments)
+  const PIECE_STEPS = [
+    {
+      key: 'base',
+      label: '1. Escolha o formato do rosto',
+      options: [
+        { id: 'oval',    svg: '<ellipse cx="50" cy="55" rx="30" ry="34" fill="' + SKIN + '"/>' },
+        { id: 'redondo', svg: '<circle cx="50" cy="55" r="32" fill="' + SKIN + '"/>' },
+        { id: 'quadrado',svg: '<rect x="20" y="24" width="60" height="62" rx="14" fill="' + SKIN + '"/>' }
+      ]
+    },
+    {
+      key: 'hair',
+      label: '2. Escolha o cabelo',
+      options: [
+        { id: 'careca', svg: '' },
+        { id: 'curto',  svg: '<path d="M20 42 Q50 8 80 42 L80 26 Q50 12 20 26 Z" fill="#3B2A1E"/>' },
+        { id: 'moicano',svg: '<path d="M42 6 L58 6 L54 38 L46 38 Z" fill="#D6423E"/>' }
+      ]
+    },
+    {
+      key: 'eyes',
+      label: '3. Escolha os olhos',
+      options: [
+        { id: 'normal',   svg: '<circle cx="38" cy="52" r="3.4" fill="#2C2C2A"/><circle cx="62" cy="52" r="3.4" fill="#2C2C2A"/>' },
+        { id: 'esbugalhado', svg: '<circle cx="38" cy="52" r="8" fill="#fff" stroke="#2C2C2A" stroke-width="1.5"/><circle cx="62" cy="52" r="8" fill="#fff" stroke="#2C2C2A" stroke-width="1.5"/><circle cx="38" cy="52" r="3" fill="#2C2C2A"/><circle cx="62" cy="52" r="3" fill="#2C2C2A"/>' },
+        { id: 'oculos',   svg: '<circle cx="38" cy="52" r="9" fill="none" stroke="#2C2C2A" stroke-width="3"/><circle cx="62" cy="52" r="9" fill="none" stroke="#2C2C2A" stroke-width="3"/><line x1="47" y1="52" x2="53" y2="52" stroke="#2C2C2A" stroke-width="3"/><circle cx="38" cy="52" r="3" fill="#2C2C2A"/><circle cx="62" cy="52" r="3" fill="#2C2C2A"/>' }
+      ]
+    },
+    {
+      key: 'nose',
+      label: '4. Escolha o nariz',
+      options: [
+        { id: 'normal', svg: '<path d="M50 55 L46 70 Q50 74 54 70 Z" fill="rgba(0,0,0,0.15)"/>' },
+        { id: 'grande', svg: '<ellipse cx="50" cy="68" rx="9" ry="7" fill="rgba(0,0,0,0.18)"/>' },
+        { id: 'bolinha',svg: '<circle cx="50" cy="66" r="6" fill="#D6423E"/>' }
+      ]
+    },
+    {
+      key: 'mouth',
+      label: '5. Escolha a boca',
+      options: [
+        { id: 'sorriso', svg: '<path d="M36 80 Q50 92 64 80" stroke="#A83232" stroke-width="3.5" fill="none" stroke-linecap="round"/>' },
+        { id: 'serio',   svg: '<line x1="38" y1="82" x2="62" y2="82" stroke="#A83232" stroke-width="3.5" stroke-linecap="round"/>' },
+        { id: 'lingua',  svg: '<path d="M36 78 Q50 90 64 78" stroke="#A83232" stroke-width="3.5" fill="none" stroke-linecap="round"/><ellipse cx="50" cy="86" rx="6" ry="8" fill="#E0656A"/>' }
+      ]
+    },
+    {
+      key: 'extra',
+      label: '6. Escolha um toque especial',
+      options: [
+        { id: 'chapeu',  svg: '<rect x="22" y="14" width="56" height="8" rx="2" fill="#3C3489"/><rect x="32" y="0" width="36" height="18" rx="4" fill="#3C3489"/>' },
+        { id: 'bigode',  svg: '<path d="M36 74 Q50 80 64 74 Q50 78 36 74" fill="#3B2A1E"/>' },
+        { id: 'sardas',  svg: '<circle cx="32" cy="64" r="1.6" fill="rgba(0,0,0,0.25)"/><circle cx="36" cy="68" r="1.6" fill="rgba(0,0,0,0.25)"/><circle cx="64" cy="68" r="1.6" fill="rgba(0,0,0,0.25)"/><circle cx="68" cy="64" r="1.6" fill="rgba(0,0,0,0.25)"/>' }
+      ]
+    }
+  ];
+
+  let currentStep = 0;
+  let chosen = {}; // key -> svg escolhido
+  let timerInterval = null;
+  let timeLeft = TIME_PER_PIECE;
+  let gameActive = false;
+
+  function buildFaceSVG(){
+    // ordem de camadas: base, hair(atrás se careca ok, mas simplificamos por cima), extras conforme escolha
+    let layers = [];
+    if (chosen.base) layers.push(chosen.base);
+    // orelhas
+    layers.push('<circle cx="20" cy="55" r="6.5" fill="' + SKIN + '"/><circle cx="80" cy="55" r="6.5" fill="' + SKIN + '"/>');
+    if (chosen.eyes) layers.push(chosen.eyes);
+    if (chosen.nose) layers.push(chosen.nose);
+    if (chosen.mouth) layers.push(chosen.mouth);
+    if (chosen.hair) layers.push(chosen.hair);
+    if (chosen.extra) layers.push(chosen.extra);
+    return '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + layers.join('') + '</svg>';
+  }
+
+  function renderFace(){
+    faceStage.classList.remove('jumping');
+    faceStage.innerHTML = buildFaceSVG();
+  }
+
+  function renderOptionsPreview(step){
+    // pré-visualização de cada opção mostra o rosto completo até agora + a peça em teste
+    optionsEl.innerHTML = '';
+    step.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      let layers = [];
+      if (chosen.base) layers.push(chosen.base);
+      layers.push('<circle cx="20" cy="55" r="6.5" fill="' + SKIN + '"/><circle cx="80" cy="55" r="6.5" fill="' + SKIN + '"/>');
+      if (chosen.eyes) layers.push(chosen.eyes);
+      if (chosen.nose) layers.push(chosen.nose);
+      if (chosen.mouth) layers.push(chosen.mouth);
+      if (chosen.hair) layers.push(chosen.hair);
+      if (chosen.extra) layers.push(chosen.extra);
+      // sobrepõe a opção testada na camada certa
+      layers.push(opt.svg);
+
+      btn.innerHTML = '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">' + layers.join('') + '</svg>';
+      btn.addEventListener('click', () => chooseOption(step, opt));
+      optionsEl.appendChild(btn);
+    });
+  }
+
+  function updateTimerBar(){
+    const pct = Math.max(0, (timeLeft / TIME_PER_PIECE) * 100);
+    timerFill.style.width = pct + '%';
+    if (pct < 25) timerFill.style.background = 'var(--timer-fill-danger)';
+    else if (pct < 55) timerFill.style.background = 'var(--timer-fill-warn)';
+    else timerFill.style.background = 'var(--timer-fill)';
+  }
+
+  function startTimer(){
+    clearInterval(timerInterval);
+    timeLeft = TIME_PER_PIECE;
+    updateTimerBar();
+    timerInterval = setInterval(() => {
+      timeLeft -= 0.1;
+      if (timeLeft <= 0){
+        clearInterval(timerInterval);
+        timeLeft = 0;
+        updateTimerBar();
+        faceJumps();
+        return;
+      }
+      updateTimerBar();
+    }, 100);
+  }
+
+  function faceJumps(){
+    gameActive = false;
+    statusEl.textContent = 'Ihh, o tempo acabou! O rosto pulou! 😆';
+    faceStage.classList.add('jumping');
+    optionsEl.innerHTML = '';
+    pieceLabel.textContent = '';
+    startBtn.textContent = 'Tentar de novo';
+  }
+
+  function chooseOption(step, opt){
+    if (!gameActive) return;
+    clearInterval(timerInterval);
+    chosen[step.key] = opt.svg;
+    renderFace();
+    nextStep();
+  }
+
+  function nextStep(){
+    currentStep++;
+    if (currentStep >= PIECE_STEPS.length){
+      finishFace();
+      return;
+    }
+    const step = PIECE_STEPS[currentStep];
+    pieceLabel.textContent = step.label;
+    renderOptionsPreview(step);
+    statusEl.textContent = 'Escolha rapidinho!';
+    startTimer();
+  }
+
+  function finishFace(){
+    gameActive = false;
+    clearInterval(timerInterval);
+    statusEl.textContent = 'Seu Cara Maluca ficou pronto! 🎉';
+    pieceLabel.textContent = '';
+    optionsEl.innerHTML = '';
+    timerFill.style.width = '100%';
+    timerFill.style.background = 'var(--timer-fill)';
+    startBtn.textContent = 'Fazer outro rosto';
+  }
+
+  function startGame(){
+    currentStep = -1;
+    chosen = {};
+    gameActive = true;
+    faceStage.classList.remove('jumping');
+    faceStage.innerHTML = '';
+    startBtn.textContent = 'Reiniciar';
+    nextStep();
+  }
+
+  startBtn.addEventListener('click', startGame);
+})();
+</script>
+
+</body>
+</html>

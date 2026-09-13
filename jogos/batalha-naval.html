@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Batalha Naval</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --water: #AEDFF7;
+    --water-border: #7FC1E8;
+    --ship: #5F5E5A;
+    --ship-border: #2C2C2A;
+    --hit: #E24B4A;
+    --hit-border: #993C1D;
+    --miss: #C7C2B0;
+    --miss-border: #9C9788;
+    --sunk: #7A241C;
+    --valid-preview: rgba(99, 153, 34, 0.5);
+    --invalid-preview: rgba(226, 75, 74, 0.4);
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --water: #204A63;
+    --water-border: #2E6284;
+    --ship: #A6A399;
+    --ship-border: #5F5E5A;
+    --hit: #D8493A;
+    --hit-border: #8C2E22;
+    --miss: #47443B;
+    --miss-border: #5C5849;
+    --sunk: #6B2018;
+    --valid-preview: rgba(123, 175, 58, 0.6);
+    --invalid-preview: rgba(216, 73, 58, 0.5);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 40px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fleet-list {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+  .fleet-item {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: var(--key-bg);
+    border: 2px solid var(--key-border);
+    color: var(--key-text);
+  }
+  .fleet-item.placed {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+  .fleet-item.active {
+    border-color: var(--title);
+    color: var(--title);
+    font-weight: 700;
+  }
+
+  .board-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin: 4px 0 6px;
+  }
+
+  .board-wrap {
+    width: 100%;
+    max-width: 340px;
+    margin: 0 auto 14px;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+    background: var(--water-border);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .cell {
+    aspect-ratio: 1 / 1;
+    background: var(--water);
+    border-radius: 3px;
+    position: relative;
+    cursor: pointer;
+  }
+  .cell.ship-cell { background: var(--ship); }
+  .cell.preview-valid { background: var(--valid-preview); }
+  .cell.preview-invalid { background: var(--invalid-preview); }
+  .cell.hit { background: var(--hit); }
+  .cell.miss { background: var(--miss); }
+  .cell.sunk { background: var(--sunk); }
+  .cell.not-clickable { cursor: default; }
+
+  .cell::after {
+    content: "";
+    position: absolute;
+    inset: 22%;
+    border-radius: 50%;
+  }
+  .cell.hit::after, .cell.sunk::after { background: rgba(255,255,255,0.6); }
+  .cell.miss::after { background: rgba(255,255,255,0.4); inset: 34%; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+    margin-top: 4px;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+  .start-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Batalha Naval</h1>
+  <p class="subtitle" id="subtitle">Posicione sua frota tocando na primeira e na última casa de cada navio</p>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div id="fleet-panel" class="hidden">
+    <div class="fleet-list" id="fleet-list"></div>
+  </div>
+
+  <div id="placement-section" class="hidden">
+    <div class="board-wrap">
+      <div class="board" id="placement-board"></div>
+    </div>
+  </div>
+
+  <div id="battle-section" class="hidden">
+    <div class="board-section-title">Seu tabuleiro</div>
+    <div class="board-wrap">
+      <div class="board" id="my-board"></div>
+    </div>
+    <div class="board-section-title">Tabuleiro do computador</div>
+    <div class="board-wrap">
+      <div class="board" id="enemy-board"></div>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('batalhanaval-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('batalhanaval-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const SIZE = 8;
+  const SHIPS = [
+    { name: 'Porta-aviões', size: 4 },
+    { name: 'Cruzador', size: 3 },
+    { name: 'Submarino', size: 2 },
+    { name: 'Barco', size: 1 }
+  ];
+
+  const statusEl = document.getElementById('status');
+  const subtitleEl = document.getElementById('subtitle');
+  const startBtn = document.getElementById('start');
+  const fleetPanel = document.getElementById('fleet-panel');
+  const fleetListEl = document.getElementById('fleet-list');
+  const placementSection = document.getElementById('placement-section');
+  const placementBoardEl = document.getElementById('placement-board');
+  const battleSection = document.getElementById('battle-section');
+  const myBoardEl = document.getElementById('my-board');
+  const enemyBoardEl = document.getElementById('enemy-board');
+
+  let myGrid = [];    // 'ship' | null
+  let myHits = [];    // 'hit' | 'miss' | null (ataques recebidos)
+  let enemyGrid = []; // 'ship' | null (oculto)
+  let enemyHits = []; // 'hit' | 'miss' | null (seus ataques)
+
+  let gamePhase = 'idle'; // idle | placing | battle | over
+  let shipsToPlace = [];
+  let currentShipIndex = 0;
+  let firstClick = null;
+  let busy = false;
+  let turn = 'you';
+
+  function emptyGrid(){
+    return Array.from({length: SIZE}, () => Array(SIZE).fill(null));
+  }
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function cellsBetween(r1, c1, r2, c2){
+    if (r1 === r2){
+      const lo = Math.min(c1, c2), hi = Math.max(c1, c2);
+      const cells = [];
+      for (let c = lo; c <= hi; c++) cells.push({ r: r1, c });
+      return cells;
+    }
+    if (c1 === c2){
+      const lo = Math.min(r1, r2), hi = Math.max(r1, r2);
+      const cells = [];
+      for (let r = lo; r <= hi; r++) cells.push({ r, c: c1 });
+      return cells;
+    }
+    return null; // não é linha reta
+  }
+
+  function canPlaceShip(grid, cells){
+    return cells.every(({r,c}) => r >= 0 && r < SIZE && c >= 0 && c < SIZE && !grid[r][c]);
+  }
+
+  function placeShipOnGrid(grid, cells, id){
+    cells.forEach(({r,c}) => { grid[r][c] = { ship: id }; });
+  }
+
+  // ---- Posicionamento aleatório (usado pro computador) ----
+  function randomPlaceFleet(){
+    const grid = emptyGrid();
+    SHIPS.forEach((ship, idx) => {
+      let placed = false;
+      let attempts = 0;
+      while (!placed && attempts < 300){
+        attempts++;
+        const horizontal = Math.random() < 0.5;
+        const r = randInt(0, SIZE - 1);
+        const c = randInt(0, SIZE - 1);
+        let cells = [];
+        for (let k = 0; k < ship.size; k++){
+          cells.push(horizontal ? { r, c: c + k } : { r: r + k, c });
+        }
+        if (canPlaceShip(grid, cells)){
+          placeShipOnGrid(grid, cells, idx);
+          placed = true;
+        }
+      }
+    });
+    return grid;
+  }
+
+  // ---- Fase de posicionamento do jogador ----
+  function renderFleetList(){
+    fleetListEl.innerHTML = '';
+    SHIPS.forEach((ship, i) => {
+      const tag = document.createElement('span');
+      tag.className = 'fleet-item' +
+        (i < currentShipIndex ? ' placed' : '') +
+        (i === currentShipIndex ? ' active' : '');
+      tag.textContent = ship.name + ' (' + ship.size + ')';
+      fleetListEl.appendChild(tag);
+    });
+  }
+
+  function renderPlacementBoard(previewCells, previewValid){
+    placementBoardEl.innerHTML = '';
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        if (myGrid[r][c]) cell.classList.add('ship-cell');
+        if (previewCells && previewCells.some(p => p.r === r && p.c === c)){
+          cell.classList.add(previewValid ? 'preview-valid' : 'preview-invalid');
+        }
+        cell.addEventListener('click', () => handlePlacementClick(r, c));
+        placementBoardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function handlePlacementClick(r, c){
+    if (gamePhase !== 'placing') return;
+    if (myGrid[r][c]) return; // já tem navio ali
+
+    if (firstClick === null){
+      firstClick = { r, c };
+      renderPlacementBoard([{r,c}], true);
+      statusEl.textContent = 'Agora toque na última casa do ' + SHIPS[currentShipIndex].name;
+      return;
+    }
+
+    const ship = SHIPS[currentShipIndex];
+    const cells = cellsBetween(firstClick.r, firstClick.c, r, c);
+
+    if (!cells || cells.length !== ship.size || !canPlaceShip(myGrid, cells)){
+      statusEl.textContent = 'Posição inválida para o ' + ship.name + ' (tamanho ' + ship.size + '). Tente de novo!';
+      firstClick = null;
+      renderPlacementBoard();
+      return;
+    }
+
+    placeShipOnGrid(myGrid, cells, currentShipIndex);
+    currentShipIndex++;
+    firstClick = null;
+    renderFleetList();
+
+    if (currentShipIndex >= SHIPS.length){
+      statusEl.textContent = 'Frota posicionada! Toque em "Começar batalha"';
+      startBtn.textContent = 'Começar batalha';
+      startBtn.disabled = false;
+      renderPlacementBoard();
+      return;
+    }
+
+    statusEl.textContent = 'Toque na primeira casa do ' + SHIPS[currentShipIndex].name + ' (tamanho ' + SHIPS[currentShipIndex].size + ')';
+    renderPlacementBoard();
+  }
+
+  // ---- Fase de batalha ----
+  function shipSunk(grid, hits, shipId){
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        if (grid[r][c] && grid[r][c].ship === shipId && hits[r][c] !== 'hit'){
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function allShipsSunk(grid, hits){
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        if (grid[r][c] && hits[r][c] !== 'hit') return false;
+      }
+    }
+    return true;
+  }
+
+  function renderMyBoard(){
+    myBoardEl.innerHTML = '';
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell not-clickable';
+        const hasShip = !!myGrid[r][c];
+        const hitState = myHits[r][c];
+        if (hitState === 'hit'){
+          const sunk = hasShip && shipSunk(myGrid, myHits, myGrid[r][c].ship);
+          cell.classList.add(sunk ? 'sunk' : 'hit');
+        } else if (hitState === 'miss'){
+          cell.classList.add('miss');
+        } else if (hasShip){
+          cell.classList.add('ship-cell');
+        }
+        myBoardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function renderEnemyBoard(){
+    enemyBoardEl.innerHTML = '';
+    for (let r = 0; r < SIZE; r++){
+      for (let c = 0; c < SIZE; c++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        const hitState = enemyHits[r][c];
+        if (hitState === 'hit'){
+          const sunk = enemyGrid[r][c] && shipSunk(enemyGrid, enemyHits, enemyGrid[r][c].ship);
+          cell.classList.add(sunk ? 'sunk' : 'hit');
+          cell.classList.add('not-clickable');
+        } else if (hitState === 'miss'){
+          cell.classList.add('miss');
+          cell.classList.add('not-clickable');
+        } else {
+          cell.addEventListener('click', () => handleAttack(r, c));
+        }
+        enemyBoardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function handleAttack(r, c){
+    if (gamePhase !== 'battle' || busy || turn !== 'you') return;
+    if (enemyHits[r][c]) return;
+
+    const hit = !!enemyGrid[r][c];
+    enemyHits[r][c] = hit ? 'hit' : 'miss';
+    renderEnemyBoard();
+
+    if (hit){
+      const sunk = shipSunk(enemyGrid, enemyHits, enemyGrid[r][c].ship);
+      statusEl.textContent = sunk ? 'Você afundou um navio! 🎯 Jogue de novo' : 'Acertou! Jogue de novo';
+    } else {
+      statusEl.textContent = 'Água... Vez do computador';
+    }
+
+    if (allShipsSunk(enemyGrid, enemyHits)){
+      endGame(true);
+      return;
+    }
+
+    if (!hit){
+      busy = true;
+      turn = 'cpu';
+      setTimeout(computerAttack, 700);
+    }
+  }
+
+  // IA simples: ataque aleatório, mas com "caça" ao redor de um acerto anterior
+  let huntQueue = [];
+
+  function computerAttack(){
+    if (gamePhase !== 'battle') return;
+
+    let target = null;
+
+    // se tem alvos na fila de caça (vizinhos de acerto anterior), usa
+    while (huntQueue.length > 0 && !target){
+      const candidate = huntQueue.shift();
+      if (candidate.r >= 0 && candidate.r < SIZE && candidate.c >= 0 && candidate.c < SIZE && !myHits[candidate.r][candidate.c]){
+        target = candidate;
+      }
+    }
+
+    if (!target){
+      // ataque aleatório em célula não atacada ainda
+      const empties = [];
+      for (let r = 0; r < SIZE; r++){
+        for (let c = 0; c < SIZE; c++){
+          if (!myHits[r][c]) empties.push({ r, c });
+        }
+      }
+      target = empties[randInt(0, empties.length - 1)];
+    }
+
+    const { r, c } = target;
+    const hit = !!myGrid[r][c];
+    myHits[r][c] = hit ? 'hit' : 'miss';
+    renderMyBoard();
+
+    if (hit){
+      const sunk = shipSunk(myGrid, myHits, myGrid[r][c].ship);
+      if (sunk){
+        statusEl.textContent = 'O computador afundou um dos seus navios!';
+        huntQueue = []; // navio afundado, limpa a caça
+      } else {
+        statusEl.textContent = 'O computador acertou um dos seus navios!';
+        // adiciona vizinhos à fila de caça
+        [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc]) => {
+          huntQueue.push({ r: nr, c: nc });
+        });
+      }
+    } else {
+      statusEl.textContent = 'O computador errou! Sua vez';
+    }
+
+    if (allShipsSunk(myGrid, myHits)){
+      endGame(false);
+      return;
+    }
+
+    if (hit){
+      setTimeout(computerAttack, 700);
+    } else {
+      turn = 'you';
+      busy = false;
+    }
+  }
+
+  function endGame(youWon){
+    gamePhase = 'over';
+    busy = false;
+    statusEl.textContent = youWon
+      ? 'Você venceu! Afundou toda a frota do computador! 🎉'
+      : 'O computador venceu — afundou toda a sua frota. Tente de novo!';
+    startBtn.textContent = 'Jogar de novo';
+    startBtn.disabled = false;
+  }
+
+  // ---- Fluxo geral ----
+  function beginPlacementPhase(){
+    myGrid = emptyGrid();
+    myHits = emptyGrid();
+    enemyHits = emptyGrid();
+    currentShipIndex = 0;
+    firstClick = null;
+    gamePhase = 'placing';
+
+    subtitleEl.textContent = 'Posicione sua frota tocando na primeira e na última casa de cada navio';
+    fleetPanel.classList.remove('hidden');
+    placementSection.classList.remove('hidden');
+    battleSection.classList.add('hidden');
+
+    renderFleetList();
+    statusEl.textContent = 'Toque na primeira casa do ' + SHIPS[0].name + ' (tamanho ' + SHIPS[0].size + ')';
+    startBtn.textContent = 'Começar batalha';
+    startBtn.disabled = true;
+    renderPlacementBoard();
+  }
+
+  function beginBattlePhase(){
+    enemyGrid = randomPlaceFleet();
+    gamePhase = 'battle';
+    turn = 'you';
+    busy = false;
+    huntQueue = [];
+
+    subtitleEl.textContent = 'Toque no tabuleiro do computador para atacar';
+    fleetPanel.classList.add('hidden');
+    placementSection.classList.add('hidden');
+    battleSection.classList.remove('hidden');
+
+    statusEl.textContent = 'Sua vez! Ataque o tabuleiro do computador';
+    startBtn.textContent = 'Reiniciar tudo';
+    startBtn.disabled = false;
+
+    renderMyBoard();
+    renderEnemyBoard();
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (gamePhase === 'idle' || gamePhase === 'over'){
+      beginPlacementPhase();
+    } else if (gamePhase === 'placing' && currentShipIndex >= SHIPS.length){
+      beginBattlePhase();
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

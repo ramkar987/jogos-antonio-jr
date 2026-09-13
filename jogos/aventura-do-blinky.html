@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>A Aventura de Blinky</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --cell-bg: #FAF8F2;
+    --cell-border: #E1DDCF;
+    --goal-bg: #F0B24A;
+    --wall-bg: #5F5E5A;
+    --coin: #EF9F27;
+    --program-bg: #FAF8F2;
+    --program-border: #E1DDCF;
+    --block-bg: #378ADD;
+    --block-text: #ffffff;
+    --danger: #E24B4A;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --cell-bg: #322F28;
+    --cell-border: #47443B;
+    --goal-bg: #C98F3A;
+    --wall-bg: #47443B;
+    --coin: #D89530;
+    --program-bg: #2C2A24;
+    --program-border: #47443B;
+    --block-bg: #5AA1E8;
+    --block-text: #1C1B18;
+    --danger: #D8493A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 460px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 21px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .status {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 20px;
+    margin-bottom: 10px;
+  }
+
+  .board-wrap {
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 14px;
+  }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 3px;
+    aspect-ratio: 1 / 1;
+    position: relative;
+  }
+  .cell {
+    position: relative;
+    background: var(--cell-bg);
+    border: 2px solid var(--cell-border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+  .cell.wall { background: var(--wall-bg); }
+  .cell.goal { background: var(--goal-bg); }
+  .cell.coin::after {
+    content: "🪙";
+    font-size: 16px;
+  }
+
+  .robot-icon {
+    position: absolute;
+    font-size: 20px;
+    transition: left 0.4s ease-in-out, top 0.4s ease-in-out;
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .program-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-align: left;
+  }
+  .program-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 44px;
+    background: var(--program-bg);
+    border: 2px dashed var(--program-border);
+    border-radius: 12px;
+    padding: 8px;
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .program-block {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--block-bg);
+    color: var(--block-text);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .program-block .remove-x {
+    cursor: pointer;
+    opacity: 0.75;
+    font-size: 12px;
+    padding-left: 2px;
+  }
+  .program-empty-hint {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding: 4px;
+  }
+
+  .block-picker {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .block-btn {
+    padding: 12px 4px;
+    font-size: 20px;
+    border-radius: 12px;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .block-btn:active { transform: scale(0.94); }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .action-btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .action-btn.clear { background: var(--key-bg); color: var(--key-text); border: 2px solid var(--key-border); }
+  .action-btn.play { background: var(--btn-bg); color: var(--btn-text); }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>A Aventura de Blinky</h1>
+  <p class="subtitle">Monte o programa com blocos e leve o robô até a meta!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Moedas</div>
+      <div class="stat-value" id="coins">0 / 0</div>
+    </div>
+    <div>
+      <div class="stat-label">Fase</div>
+      <div class="stat-value" id="level">1</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div id="game-controls" class="hidden">
+    <div class="program-label">Seu programa (nessa ordem):</div>
+    <div class="program-list" id="program-list"></div>
+
+    <div class="block-picker" id="block-picker"></div>
+
+    <div class="action-row">
+      <button class="action-btn clear" id="clear-btn">Limpar</button>
+      <button class="action-btn play" id="play-btn">▶ Executar</button>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('blinky-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('blinky-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  let actx = null;
+  function getActx(){ if (!actx) actx = new AudioCtx(); return actx; }
+  function playCoin(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(660, c.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(990, c.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.22, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.18);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + 0.18);
+  }
+  function playWin(){
+    const c = getActx();
+    [0,4,7,12].forEach((semi, i) => {
+      const osc = c.createOscillator();
+      const gain = c.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 260 * Math.pow(2, semi/12);
+      const t0 = c.currentTime + i * 0.1;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.linearRampToValueAtTime(0.25, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.3);
+      osc.connect(gain).connect(c.destination);
+      osc.start(t0); osc.stop(t0 + 0.3);
+    });
+  }
+  function playBump(){
+    const c = getActx();
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, c.currentTime);
+    gain.gain.setValueAtTime(0.0001, c.currentTime);
+    gain.gain.linearRampToValueAtTime(0.22, c.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.25);
+    osc.connect(gain).connect(c.destination);
+    osc.start(); osc.stop(c.currentTime + 0.25);
+  }
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const coinsEl = document.getElementById('coins');
+  const levelEl = document.getElementById('level');
+  const gameControls = document.getElementById('game-controls');
+  const programListEl = document.getElementById('program-list');
+  const blockPickerEl = document.getElementById('block-picker');
+  const clearBtn = document.getElementById('clear-btn');
+  const playBtn = document.getElementById('play-btn');
+
+  const GRID = 6;
+  const DIRECTIONS = [
+    { id: 'up',    symbol: '↑', dr: -1, dc: 0 },
+    { id: 'down',  symbol: '↓', dr: 1, dc: 0 },
+    { id: 'left',  symbol: '←', dr: 0, dc: -1 },
+    { id: 'right', symbol: '→', dr: 0, dc: 1 }
+  ];
+  const MAX_PROGRAM_LENGTH = 12;
+
+  let level = 1;
+  let grid = [];
+  let robotStart = { r: 0, c: 0 };
+  let goal = { r: 0, c: 0 };
+  let coins = [];
+  let program = [];
+  let gameActive = false;
+  let running = false;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function buildLevel(lvl){
+    grid = Array.from({length: GRID}, () => Array(GRID).fill('empty'));
+
+    const wallCount = Math.min(3 + lvl, 8);
+    let placed = 0;
+    let attempts = 0;
+    while (placed < wallCount && attempts < 200){
+      attempts++;
+      const r = randInt(0, GRID-1), c = randInt(0, GRID-1);
+      if (r === 0 && c === 0) continue;
+      if (grid[r][c] === 'empty'){
+        grid[r][c] = 'wall';
+        placed++;
+      }
+    }
+
+    robotStart = { r: 0, c: 0 };
+    goal = { r: GRID-1, c: GRID-1 };
+    grid[goal.r][goal.c] = 'empty';
+    grid[robotStart.r][robotStart.c] = 'empty';
+
+    ensurePathExists();
+
+    const coinCount = Math.min(2 + Math.floor(lvl/2), 5);
+    coins = [];
+    let coinAttempts = 0;
+    while (coins.length < coinCount && coinAttempts < 300){
+      coinAttempts++;
+      const r = randInt(0, GRID-1), c = randInt(0, GRID-1);
+      if (grid[r][c] !== 'empty') continue;
+      if (r === robotStart.r && c === robotStart.c) continue;
+      if (r === goal.r && c === goal.c) continue;
+      if (coins.some(co => co.r === r && co.c === c)) continue;
+      coins.push({ r, c, collected: false });
+    }
+
+    program = [];
+  }
+
+  function ensurePathExists(){
+    function bfsReachable(){
+      const visited = Array.from({length: GRID}, () => Array(GRID).fill(false));
+      const queue = [robotStart];
+      visited[robotStart.r][robotStart.c] = true;
+      while (queue.length){
+        const cur = queue.shift();
+        DIRECTIONS.forEach(d => {
+          const nr = cur.r + d.dr, nc = cur.c + d.dc;
+          if (nr >= 0 && nr < GRID && nc >= 0 && nc < GRID && !visited[nr][nc] && grid[nr][nc] === 'empty'){
+            visited[nr][nc] = true;
+            queue.push({ r: nr, c: nc });
+          }
+        });
+      }
+      return visited[goal.r][goal.c];
+    }
+
+    let safety = 0;
+    while (!bfsReachable() && safety < 50){
+      safety++;
+      const walls = [];
+      for (let r = 0; r < GRID; r++) for (let c = 0; c < GRID; c++) if (grid[r][c] === 'wall') walls.push({r,c});
+      if (walls.length === 0) break;
+      const w = walls[randInt(0, walls.length-1)];
+      grid[w.r][w.c] = 'empty';
+    }
+  }
+
+  function renderBoard(){
+    boardEl.innerHTML = '';
+    for (let r = 0; r < GRID; r++){
+      for (let c = 0; c < GRID; c++){
+        const cell = document.createElement('div');
+        let cls = 'cell';
+        if (grid[r][c] === 'wall') cls += ' wall';
+        if (r === goal.r && c === goal.c) cls += ' goal';
+        const coin = coins.find(co => co.r === r && co.c === c && !co.collected);
+        if (coin) cls += ' coin';
+        cell.className = cls;
+        if (r === goal.r && c === goal.c) cell.textContent = '🏁';
+        if (r === robotStart.r && c === robotStart.c && !running) cell.textContent = '🤖';
+        boardEl.appendChild(cell);
+      }
+    }
+    updateCoinsLabel();
+  }
+
+  function updateCoinsLabel(){
+    const collected = coins.filter(c => c.collected).length;
+    coinsEl.textContent = collected + ' / ' + coins.length;
+  }
+
+  function renderBlockPicker(){
+    blockPickerEl.innerHTML = '';
+    DIRECTIONS.forEach(d => {
+      const btn = document.createElement('button');
+      btn.className = 'block-btn';
+      btn.textContent = d.symbol;
+      btn.addEventListener('click', () => addBlock(d.id));
+      blockPickerEl.appendChild(btn);
+    });
+  }
+
+  function addBlock(dirId){
+    if (!gameActive || running) return;
+    if (program.length >= MAX_PROGRAM_LENGTH) return;
+    program.push(dirId);
+    renderProgram();
+  }
+
+  function removeBlock(index){
+    if (running) return;
+    program.splice(index, 1);
+    renderProgram();
+  }
+
+  function renderProgram(){
+    programListEl.innerHTML = '';
+    if (program.length === 0){
+      const hint = document.createElement('div');
+      hint.className = 'program-empty-hint';
+      hint.textContent = 'Toque nas setas abaixo para adicionar comandos aqui';
+      programListEl.appendChild(hint);
+    } else {
+      program.forEach((dirId, idx) => {
+        const d = DIRECTIONS.find(x => x.id === dirId);
+        const block = document.createElement('div');
+        block.className = 'program-block';
+        block.innerHTML = d.symbol + ' <span class="remove-x">✕</span>';
+        block.querySelector('.remove-x').addEventListener('click', () => removeBlock(idx));
+        programListEl.appendChild(block);
+      });
+    }
+    playBtn.disabled = program.length === 0;
+  }
+
+  function cellCenter(r, c){
+    const rect = boardEl.getBoundingClientRect();
+    const cellSize = rect.width / GRID;
+    return { left: c*cellSize + cellSize/2, top: r*cellSize + cellSize/2, size: cellSize };
+  }
+
+  function runProgram(){
+    if (!gameActive || running || program.length === 0) return;
+    running = true;
+    playBtn.disabled = true;
+    clearBtn.disabled = true;
+
+    coins.forEach(c => c.collected = false);
+    renderBoard();
+
+    const robotIcon = document.createElement('div');
+    robotIcon.className = 'robot-icon';
+    robotIcon.textContent = '🤖';
+    boardEl.appendChild(robotIcon);
+
+    let pos = { r: robotStart.r, c: robotStart.c };
+    function placeRobot(){
+      const center = cellCenter(pos.r, pos.c);
+      robotIcon.style.left = (center.left - center.size*0.26) + 'px';
+      robotIcon.style.top = (center.top - center.size*0.26) + 'px';
+      robotIcon.style.fontSize = (center.size * 0.5) + 'px';
+    }
+    placeRobot();
+    collectCoinAt(pos.r, pos.c, robotIcon);
+
+    let step = 0;
+    statusEl.textContent = 'Executando o programa...';
+
+    function nextStep(){
+      if (step >= program.length){
+        finishRun(pos, false);
+        return;
+      }
+      const d = DIRECTIONS.find(x => x.id === program[step]);
+      const nr = pos.r + d.dr, nc = pos.c + d.dc;
+
+      if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID || grid[nr][nc] === 'wall'){
+        playBump();
+        statusEl.textContent = 'Bati numa parede! Vamos ajustar o programa';
+        setTimeout(() => finishRun(pos, true), 500);
+        return;
+      }
+
+      pos = { r: nr, c: nc };
+      placeRobot();
+      collectCoinAt(pos.r, pos.c, robotIcon);
+      step++;
+      setTimeout(nextStep, 500);
+    }
+
+    setTimeout(nextStep, 400);
+  }
+
+  function collectCoinAt(r, c, robotIcon){
+    const coin = coins.find(co => co.r === r && co.c === c && !co.collected);
+    if (coin){
+      coin.collected = true;
+      playCoin();
+      renderBoard();
+      if (robotIcon) boardEl.appendChild(robotIcon);
+    }
+  }
+
+  function finishRun(finalPos, hitWall){
+    running = false;
+    clearBtn.disabled = false;
+    playBtn.disabled = program.length === 0;
+
+    const reachedGoal = finalPos.r === goal.r && finalPos.c === goal.c;
+
+    setTimeout(() => {
+      const robotIcon = boardEl.querySelector('.robot-icon');
+      if (robotIcon) robotIcon.remove();
+
+      if (reachedGoal){
+        playWin();
+        const collected = coins.filter(c => c.collected).length;
+        statusEl.textContent = 'Chegou na meta! Moedas: ' + collected + ' de ' + coins.length + ' 🎉';
+        gameActive = false;
+        gameControls.classList.add('hidden');
+        startBtn.classList.remove('hidden');
+        startBtn.textContent = 'Próxima fase';
+        level++;
+        levelEl.textContent = level;
+      } else if (!hitWall){
+        statusEl.textContent = 'O programa terminou mas não chegou na meta. Ajuste os comandos!';
+      }
+      renderBoard();
+    }, 500);
+  }
+
+  clearBtn.addEventListener('click', () => {
+    if (running) return;
+    program = [];
+    renderProgram();
+  });
+
+  playBtn.addEventListener('click', () => {
+    const c = getActx();
+    if (c.state === 'suspended') c.resume();
+    runProgram();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!gameActive || running) return;
+    switch(e.key){
+      case 'ArrowUp': addBlock('up'); e.preventDefault(); break;
+      case 'ArrowDown': addBlock('down'); e.preventDefault(); break;
+      case 'ArrowLeft': addBlock('left'); e.preventDefault(); break;
+      case 'ArrowRight': addBlock('right'); e.preventDefault(); break;
+      case 'Enter': if (program.length > 0) playBtn.click(); break;
+      case 'Backspace': if (program.length > 0) removeBlock(program.length - 1); break;
+    }
+  });
+
+  function startGame(startingLevel){
+    level = startingLevel || 1;
+    levelEl.textContent = level;
+    buildLevel(level);
+    gameActive = true;
+    running = false;
+
+    statusEl.textContent = 'Monte o caminho até a bandeira!';
+    startBtn.classList.add('hidden');
+    gameControls.classList.remove('hidden');
+
+    renderBoard();
+    renderBlockPicker();
+    renderProgram();
+  }
+
+  startBtn.addEventListener('click', () => startGame(level));
+
+  // desenho inicial estático
+  buildLevel(1);
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>

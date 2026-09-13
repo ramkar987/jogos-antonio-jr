@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ligue 4</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --board-bg: #378ADD;
+    --board-border: #185FA5;
+    --slot-empty: #FAF8F2;
+    --you: #EF9F27;
+    --you-edge: #B5730E;
+    --cpu: #E24B4A;
+    --cpu-edge: #993C1D;
+    --win-ring: #639922;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --board-bg: #2A5F8F;
+    --board-border: #163A57;
+    --slot-empty: #26251F;
+    --you: #F0B24A;
+    --you-edge: #B5730E;
+    --cpu: #D8493A;
+    --cpu-edge: #8C2E22;
+    --win-ring: #7BAF3A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .score-you { color: var(--you-edge); }
+  .score-cpu { color: var(--cpu-edge); }
+
+  .status {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 24px;
+    margin-bottom: 14px;
+  }
+
+  .board {
+    background: var(--board-bg);
+    border: 3px solid var(--board-border);
+    border-radius: 14px;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin-bottom: 18px;
+  }
+  .col {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+    gap: 4px;
+    cursor: pointer;
+  }
+  .slot {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: var(--slot-empty);
+    position: relative;
+  }
+  .slot .piece {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: drop-in .35s ease-out forwards;
+  }
+  .slot .piece.you { background: radial-gradient(circle at 35% 30%, var(--you), var(--you-edge)); }
+  .slot .piece.cpu { background: radial-gradient(circle at 35% 30%, var(--cpu), var(--cpu-edge)); }
+  .slot .piece.win {
+    box-shadow: 0 0 0 4px var(--win-ring), 0 0 14px 2px var(--win-ring);
+    animation: drop-in .35s ease-out forwards, win-pulse 0.9s ease-in-out 0.4s infinite;
+  }
+  @keyframes win-pulse {
+    0%, 100% { box-shadow: 0 0 0 4px var(--win-ring), 0 0 14px 2px var(--win-ring); transform: scale(1); }
+    50% { box-shadow: 0 0 0 6px var(--win-ring), 0 0 20px 6px var(--win-ring); transform: scale(1.08); }
+  }
+  @keyframes drop-in {
+    0%   { transform: scale(0.3) translateY(-140%); opacity: 0.6; }
+    70%  { transform: scale(1.05) translateY(4%); opacity: 1; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Ligue 4</h1>
+  <p class="subtitle">Você é a peça laranja, o computador é a vermelha</p>
+
+  <div class="scoreboard">
+    <span class="score-you" id="score-you">Você: 0</span>
+    <span class="score-cpu" id="score-cpu">Computador: 0</span>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="board" id="board"></div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('ligue4-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('ligue4-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const scoreYouEl = document.getElementById('score-you');
+  const scoreCpuEl = document.getElementById('score-cpu');
+
+  const COLS = 7, ROWS = 6;
+  // grid[col][row] -- row 0 = base (embaixo), row 5 = topo
+  let grid = [];
+  let gameActive = false;
+  let busy = false;
+  let scores = { you: 0, cpu: 0 };
+
+  function setupGrid(){
+    grid = Array.from({length: COLS}, () => Array(ROWS).fill(null));
+  }
+
+  function lowestEmptyRow(col){
+    for (let r = 0; r < ROWS; r++){
+      if (!grid[col][r]) return r;
+    }
+    return -1;
+  }
+
+  function renderBoard(winCells){
+    boardEl.innerHTML = '';
+    for (let c = 0; c < COLS; c++){
+      const colEl = document.createElement('div');
+      colEl.className = 'col';
+      colEl.addEventListener('click', () => handleColumnClick(c));
+
+      // desenha de cima (row 5) para baixo (row 0) visualmente
+      for (let r = ROWS - 1; r >= 0; r--){
+        const slot = document.createElement('div');
+        slot.className = 'slot';
+        const owner = grid[c][r];
+        if (owner){
+          const piece = document.createElement('div');
+          const isWin = winCells && winCells.some(cell => cell.c === c && cell.r === r);
+          piece.className = 'piece ' + owner + (isWin ? ' win' : '');
+          slot.appendChild(piece);
+        }
+        colEl.appendChild(slot);
+      }
+      boardEl.appendChild(colEl);
+    }
+  }
+
+  function updateScoreboard(){
+    scoreYouEl.textContent = 'Você: ' + scores.you;
+    scoreCpuEl.textContent = 'Computador: ' + scores.cpu;
+  }
+
+  function checkWin(g, player){
+    const dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    for (let c = 0; c < COLS; c++){
+      for (let r = 0; r < ROWS; r++){
+        if (g[c][r] !== player) continue;
+        for (const [dc, dr] of dirs){
+          const cells = [{c,r}];
+          for (let k = 1; k < 4; k++){
+            const nc = c + dc*k, nr = r + dr*k;
+            if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS || g[nc][nr] !== player) break;
+            cells.push({ c: nc, r: nr });
+          }
+          if (cells.length === 4) return cells;
+        }
+      }
+    }
+    return null;
+  }
+
+  function isBoardFull(g){
+    return g.every(col => col.every(cell => cell !== null));
+  }
+
+  function handleColumnClick(col){
+    if (!gameActive || busy) return;
+    const row = lowestEmptyRow(col);
+    if (row === -1) return;
+
+    grid[col][row] = 'you';
+    renderBoard();
+
+    const win = checkWin(grid, 'you');
+    if (win){ finishGame('you', win); return; }
+    if (isBoardFull(grid)){ finishGame('draw', null); return; }
+
+    busy = true;
+    statusEl.textContent = 'Vez do computador...';
+    setTimeout(computerMove, 550);
+  }
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function findWinningColumn(g, player){
+    for (let c = 0; c < COLS; c++){
+      const r = lowestEmptyRowIn(g, c);
+      if (r === -1) continue;
+      const testGrid = g.map(col => col.slice());
+      testGrid[c][r] = player;
+      if (checkWin(testGrid, player)) return c;
+    }
+    return -1;
+  }
+
+  function lowestEmptyRowIn(g, col){
+    for (let r = 0; r < ROWS; r++){
+      if (!g[col][r]) return r;
+    }
+    return -1;
+  }
+
+  function availableColumns(g){
+    const cols = [];
+    for (let c = 0; c < COLS; c++){
+      if (lowestEmptyRowIn(g, c) !== -1) cols.push(c);
+    }
+    return cols;
+  }
+
+  function computerMove(){
+    if (!gameActive) return;
+    const cols = availableColumns(grid);
+
+    // Dificuldade fácil: só joga "esperto" uma parte do tempo
+    const playOptimally = Math.random() < 0.35;
+
+    let choice = -1;
+
+    if (playOptimally){
+      // 1) tenta vencer
+      choice = findWinningColumn(grid, 'cpu');
+      // 2) senão, bloqueia o jogador
+      if (choice === -1) choice = findWinningColumn(grid, 'you');
+      // 3) senão, prefere colunas centrais
+      if (choice === -1){
+        const centerOrder = [3,2,4,1,5,0,6].filter(c => cols.includes(c));
+        if (centerOrder.length) choice = centerOrder[0];
+      }
+    }
+
+    if (choice === -1){
+      choice = cols[randInt(0, cols.length - 1)];
+    }
+
+    const row = lowestEmptyRow(choice);
+    grid[choice][row] = 'cpu';
+    renderBoard();
+
+    const win = checkWin(grid, 'cpu');
+    if (win){ finishGame('cpu', win); return; }
+    if (isBoardFull(grid)){ finishGame('draw', null); return; }
+
+    busy = false;
+    statusEl.textContent = 'Sua vez!';
+  }
+
+  function finishGame(winner, winCells){
+    gameActive = false;
+    busy = false;
+    renderBoard(winCells);
+
+    if (winner === 'you'){
+      scores.you++;
+      statusEl.textContent = 'Você ganhou! 🎉';
+    } else if (winner === 'cpu'){
+      scores.cpu++;
+      statusEl.textContent = 'O computador ganhou desta vez!';
+    } else {
+      statusEl.textContent = 'Empate! O tabuleiro encheu.';
+    }
+    updateScoreboard();
+    startBtn.textContent = 'Jogar de novo';
+  }
+
+  function startGame(){
+    setupGrid();
+    gameActive = true;
+    busy = false;
+    statusEl.textContent = 'Sua vez! Toque numa coluna';
+    startBtn.textContent = 'Reiniciar';
+    renderBoard();
+  }
+
+  startBtn.addEventListener('click', startGame);
+
+  // desenho inicial estático
+  setupGrid();
+  updateScoreboard();
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>

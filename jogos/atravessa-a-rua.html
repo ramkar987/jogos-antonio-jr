@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Atravessa a Rua</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --grass: #7BAF3A;
+    --grass-edge: #639922;
+    --road: #5F5E5A;
+    --road-line: #F3E4C8;
+    --water: #378ADD;
+    --water-edge: #185FA5;
+    --log: #A6762F;
+    --log-edge: #6B4A28;
+    --car1: #E24B4A;
+    --car2: #EF9F27;
+    --car3: #7F77DD;
+    --goal: #F0B24A;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --grass: #4A6B26;
+    --grass-edge: #395218;
+    --road: #2E2C28;
+    --road-line: #B99A6E;
+    --water: #204A63;
+    --water-edge: #163650;
+    --log: #6B4A28;
+    --log-edge: #4A3319;
+    --car1: #D8493A;
+    --car2: #D89530;
+    --car3: #6A63C4;
+    --goal: #C98F3A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    z-index: 5;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 14px;
+  }
+
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 10px;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 12px;
+  }
+
+  .stage-wrap {
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 7 / 9;
+    margin: 0 auto 16px;
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid var(--key-border);
+  }
+  #stage-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 56px);
+    grid-template-rows: repeat(2, 56px);
+    gap: 6px;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .ctrl-btn {
+    border-radius: 12px;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 22px;
+    cursor: pointer;
+    touch-action: manipulation;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ctrl-btn:active { transform: scale(0.94); background: var(--btn-bg-active); color: #fff; }
+  .ctrl-up { grid-column: 2; grid-row: 1; }
+  .ctrl-left { grid-column: 1; grid-row: 2; }
+  .ctrl-down { grid-column: 2; grid-row: 2; }
+  .ctrl-right { grid-column: 3; grid-row: 2; }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Atravessa a Rua</h1>
+  <p class="subtitle">Use as setas do teclado para atravessar sem ser atropelado nem cair na água!</p>
+
+  <div class="stats">
+    <div>
+      <div class="stat-label">Fase</div>
+      <div class="stat-value" id="level">1</div>
+    </div>
+    <div>
+      <div class="stat-label">Melhor fase</div>
+      <div class="stat-value" id="best">1</div>
+    </div>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="stage-wrap">
+    <svg id="stage-svg" viewBox="0 0 140 180"></svg>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('atravessa-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('atravessa-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const svg = document.getElementById('stage-svg');
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const levelEl = document.getElementById('level');
+  const bestEl = document.getElementById('best');
+
+  const COLS = 7, ROWS = 9;
+  const CELL = 20; // px no viewBox (140/7 = 20, 180/9 = 20)
+
+  let best = 1;
+  try { best = parseInt(localStorage.getItem('atravessa-best') || '1', 10) || 1; } catch(e) {}
+  bestEl.textContent = best;
+
+  // fileira 0 = topo (meta), fileira ROWS-1 = base (partida)
+  let rows = [];
+  let player = { row: 0, col: 0 };
+  let level = 1;
+  let gameActive = false;
+  let rafId = null;
+  let lastFrameTime = null;
+  let floatingLog = null;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+  function randInt(min, max){ return Math.floor(rand(min, max + 1)); }
+
+  function buildLevel(lvl){
+    rows = [];
+    rows.push({ type: 'goal', obstacles: [] });
+
+    const middleRows = ROWS - 2;
+    for (let i = 0; i < middleRows; i++){
+      const roll = Math.random();
+      let type;
+      if (roll < 0.5) type = 'road';
+      else if (roll < 0.85) type = 'water';
+      else type = 'grass';
+
+      const dir = Math.random() < 0.5 ? 1 : -1;
+      const baseSpeed = (0.0045 + lvl * 0.0006) * dir;
+      const obstacles = [];
+
+      if (type === 'road'){
+        const count = randInt(2, 3);
+        const gap = COLS / count;
+        for (let k = 0; k < count; k++){
+          obstacles.push({
+            pos: (k * gap) + rand(0, gap * 0.4),
+            width: rand(1.1, 1.6),
+            color: ['car1','car2','car3'][randInt(0,2)]
+          });
+        }
+      } else if (type === 'water'){
+        const count = randInt(2, 3);
+        const gap = COLS / count;
+        for (let k = 0; k < count; k++){
+          obstacles.push({
+            pos: (k * gap) + rand(0, gap * 0.3),
+            width: rand(1.8, 2.4)
+          });
+        }
+      }
+
+      rows.push({ type, obstacles, speed: baseSpeed });
+    }
+
+    rows.push({ type: 'grass', obstacles: [] }); // partida
+    player = { row: ROWS - 1, col: Math.floor(COLS / 2) };
+    floatingLog = null;
+  }
+
+  function wrapPos(pos){
+    let p = pos % COLS;
+    if (p < 0) p += COLS;
+    return p;
+  }
+
+  function drawScene(){
+    let content = '';
+    for (let r = 0; r < ROWS; r++){
+      const rowData = rows[r];
+      const y = r * CELL;
+      let bg;
+      if (rowData.type === 'road') bg = 'var(--road)';
+      else if (rowData.type === 'water') bg = 'var(--water)';
+      else if (rowData.type === 'goal') bg = 'var(--goal)';
+      else bg = 'var(--grass)';
+
+      content += '<rect x="0" y="' + y + '" width="140" height="' + CELL + '" fill="' + bg + '"/>';
+
+      if (rowData.type === 'road'){
+        content += '<line x1="0" y1="' + (y + CELL/2) + '" x2="140" y2="' + (y + CELL/2) + '" stroke="var(--road-line)" stroke-width="1" stroke-dasharray="4,3"/>';
+        rowData.obstacles.forEach(o => {
+          const px = wrapPos(o.pos) * CELL;
+          const w = o.width * CELL;
+          content += drawCar(px, y, w, CELL, o.color);
+          content += drawCar(px - COLS*CELL, y, w, CELL, o.color);
+          content += drawCar(px + COLS*CELL, y, w, CELL, o.color);
+        });
+      } else if (rowData.type === 'water'){
+        rowData.obstacles.forEach(o => {
+          const px = wrapPos(o.pos) * CELL;
+          const w = o.width * CELL;
+          content += drawLog(px, y, w, CELL);
+          content += drawLog(px - COLS*CELL, y, w, CELL);
+          content += drawLog(px + COLS*CELL, y, w, CELL);
+        });
+      } else if (rowData.type === 'goal'){
+        for (let c = 0; c < COLS; c += 2){
+          content += '<circle cx="' + (c*CELL + CELL/2) + '" cy="' + (y + CELL/2) + '" r="6" fill="rgba(255,255,255,0.35)"/>';
+        }
+      }
+    }
+
+    const px = player.col * CELL + CELL/2;
+    const py = player.row * CELL + CELL/2;
+    content += '<g transform="translate(' + px + ',' + py + ')">' + PLAYER_SVG + '</g>';
+
+    svg.innerHTML = content;
+  }
+
+  function drawCar(x, y, w, h, colorVar){
+    return '<g>' +
+      '<rect x="' + (x + 1) + '" y="' + (y + h*0.2) + '" width="' + (w - 2) + '" height="' + (h*0.6) + '" rx="3" fill="var(--' + colorVar + ')"/>' +
+      '<rect x="' + (x + w*0.15) + '" y="' + (y + h*0.28) + '" width="' + (w*0.7) + '" height="' + (h*0.22) + '" rx="2" fill="rgba(255,255,255,0.5)"/>' +
+      '</g>';
+  }
+
+  function drawLog(x, y, w, h){
+    return '<rect x="' + (x+1) + '" y="' + (y + h*0.25) + '" width="' + (w-2) + '" height="' + (h*0.5) + '" rx="6" fill="var(--log)" stroke="var(--log-edge)" stroke-width="1.5"/>';
+  }
+
+  const PLAYER_SVG =
+    '<circle cx="0" cy="0" r="7" fill="#F4C29B"/>' +
+    '<circle cx="-2.5" cy="-1" r="1.2" fill="#2C2C2A"/>' +
+    '<circle cx="2.5" cy="-1" r="1.2" fill="#2C2C2A"/>' +
+    '<path d="M-3 3 Q0 6 3 3" stroke="#A83232" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
+    '<path d="M-7 2 Q0 -6 7 2 Z" fill="#378ADD"/>';
+
+  function colInRange(col, start, width){
+    return col + 0.5 > start && col + 0.5 < start + width;
+  }
+
+  function isRoadClear(row, col){
+    const rowData = rows[row];
+    if (rowData.type !== 'road') return true;
+    return !rowData.obstacles.some(o => {
+      const p1 = wrapPos(o.pos), w = o.width;
+      return colInRange(col, p1, w) || colInRange(col, p1 - COLS, w) || colInRange(col, p1 + COLS, w);
+    });
+  }
+
+  function findLogUnder(row, col){
+    const rowData = rows[row];
+    if (rowData.type !== 'water') return null;
+    for (const o of rowData.obstacles){
+      const p1 = wrapPos(o.pos), w = o.width;
+      if (colInRange(col, p1, w) || colInRange(col, p1 - COLS, w) || colInRange(col, p1 + COLS, w)){
+        return o;
+      }
+    }
+    return null;
+  }
+
+  function movePlayer(dr, dc){
+    if (!gameActive) return;
+    const newRow = player.row + dr;
+    const newCol = Math.round(player.col) + dc;
+    if (newRow < 0 || newRow >= ROWS || newCol < 0 || newCol >= COLS) return;
+
+    player.row = newRow;
+    player.col = newCol;
+    floatingLog = null;
+
+    checkPlayerState();
+    if (!gameActive) return;
+
+    if (player.row === 0){
+      levelUp();
+      return;
+    }
+
+    drawScene();
+  }
+
+  function checkPlayerState(){
+    const rowData = rows[player.row];
+    if (rowData.type === 'road'){
+      if (!isRoadClear(player.row, Math.round(player.col))){
+        loseLife('Ihh, um carro passou por cima! 🚗');
+      }
+    } else if (rowData.type === 'water'){
+      const log = findLogUnder(player.row, Math.round(player.col));
+      if (!log){
+        loseLife('Splash! Você caiu na água! 💧');
+      } else {
+        floatingLog = log;
+      }
+    }
+  }
+
+  function loseLife(message){
+    gameActive = false;
+    statusEl.textContent = message + ' Tente de novo!';
+    startBtn.textContent = 'Tentar de novo';
+    startBtn.disabled = false;
+  }
+
+  function levelUp(){
+    gameActive = false;
+    if (level > best){
+      best = level;
+      try { localStorage.setItem('atravessa-best', String(best)); } catch(e) {}
+      bestEl.textContent = best;
+    }
+    statusEl.textContent = 'Você atravessou! Fase ' + level + ' completa! 🎉';
+    level++;
+    levelEl.textContent = level;
+    startBtn.textContent = 'Próxima fase';
+    startBtn.disabled = false;
+  }
+
+  function physicsLoop(ts){
+    if (!lastFrameTime) lastFrameTime = ts;
+    const dt = Math.min(ts - lastFrameTime, 40);
+    lastFrameTime = ts;
+
+    let playerCarriedDelta = null;
+
+    rows.forEach((rowData, r) => {
+      if (rowData.type === 'road' || rowData.type === 'water'){
+        rowData.obstacles.forEach(o => {
+          o.pos += rowData.speed * dt;
+        });
+        if (rowData.type === 'water' && r === player.row && floatingLog){
+          playerCarriedDelta = rowData.speed * dt;
+        }
+      }
+    });
+
+    if (gameActive && playerCarriedDelta !== null){
+      player.col += playerCarriedDelta;
+      if (player.col < -0.5 || player.col > COLS - 0.5){
+        loseLife('O tronco saiu da água e você se molhou! 💧');
+      }
+    }
+
+    if (gameActive){
+      const rowData = rows[player.row];
+      if (rowData && rowData.type === 'road'){
+        if (!isRoadClear(player.row, Math.round(player.col))){
+          loseLife('Ihh, um carro passou por cima! 🚗');
+        }
+      }
+    }
+
+    drawScene();
+
+    if (gameActive){
+      rafId = requestAnimationFrame(physicsLoop);
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (!gameActive) return;
+    switch(e.key){
+      case 'ArrowUp': case 'w': case 'W':
+        movePlayer(-1, 0); e.preventDefault(); break;
+      case 'ArrowDown': case 's': case 'S':
+        movePlayer(1, 0); e.preventDefault(); break;
+      case 'ArrowLeft': case 'a': case 'A':
+        movePlayer(0, -1); e.preventDefault(); break;
+      case 'ArrowRight': case 'd': case 'D':
+        movePlayer(0, 1); e.preventDefault(); break;
+    }
+  });
+
+  function startGame(startingLevel){
+    level = startingLevel || 1;
+    levelEl.textContent = level;
+    buildLevel(level);
+    gameActive = true;
+    lastFrameTime = null;
+    statusEl.textContent = 'Vai! Use as setas do teclado pra atravessar';
+    startBtn.textContent = 'Jogando...';
+    startBtn.disabled = true;
+    drawScene();
+    rafId = requestAnimationFrame(physicsLoop);
+  }
+
+  startBtn.addEventListener('click', () => {
+    if (statusEl.textContent.includes('completa')){
+      startGame(level);
+    } else {
+      startGame(1);
+    }
+  });
+
+  // desenho inicial estático
+  buildLevel(1);
+  drawScene();
+})();
+</script>
+
+</body>
+</html>

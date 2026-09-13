@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mastermind</title>
+<style>
+  :root {
+    --bg: #FFF8EC;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0,0,0,0.08);
+    --title: #3C3489;
+    --text-secondary: #888780;
+    --text-primary: #2C2C2A;
+    --btn-bg: #3C3489;
+    --btn-bg-active: #26215C;
+    --btn-text: #ffffff;
+    --key-bg: #FAF8F2;
+    --key-border: #E1DDCF;
+    --key-text: #2C2C2A;
+    --slot-empty: #FAF8F2;
+    --slot-empty-border: #C9BB9A;
+    --row-bg: #FAF8F2;
+    --row-border: #E1DDCF;
+    --peg-black: #2C2C2A;
+    --peg-white: #FFFFFF;
+    --peg-white-border: #C9BB9A;
+    --peg-empty: #E1DDCF;
+    --c-red: #E24B4A;
+    --c-blue: #378ADD;
+    --c-yellow: #EF9F27;
+    --c-green: #639922;
+  }
+  [data-theme="dark"] {
+    --bg: #1C1B18;
+    --card-bg: #26251F;
+    --card-shadow: rgba(0,0,0,0.4);
+    --title: #B4ACF2;
+    --text-secondary: #A6A399;
+    --text-primary: #F2F0E8;
+    --btn-bg: #7F77DD;
+    --btn-bg-active: #534AB7;
+    --btn-text: #1C1B18;
+    --key-bg: #322F28;
+    --key-border: #47443B;
+    --key-text: #F2F0E8;
+    --slot-empty: #322F28;
+    --slot-empty-border: #5C543F;
+    --row-bg: #2C2A24;
+    --row-border: #47443B;
+    --peg-black: #F2F0E8;
+    --peg-white: #47443B;
+    --peg-white-border: #5C543F;
+    --peg-empty: #47443B;
+    --c-red: #D8493A;
+    --c-blue: #5AA1E8;
+    --c-yellow: #D89530;
+    --c-green: #7BAF3A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    transition: background .2s;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .card {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    background: var(--card-bg);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px var(--card-shadow);
+    padding: 22px 20px 26px;
+    text-align: center;
+    transition: background .2s;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--key-border);
+    background: var(--key-bg);
+    color: var(--key-text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+  }
+  h1 {
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--title);
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 12px;
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .legend-peg {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .legend-peg.black { background: var(--peg-black); }
+  .legend-peg.white { background: var(--peg-white); border: 1.5px solid var(--peg-white-border); }
+
+  .status {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-height: 22px;
+    margin-bottom: 12px;
+  }
+
+  .history {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    margin-bottom: 14px;
+    padding: 4px;
+  }
+  .history-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--row-bg);
+    border: 2px solid var(--row-border);
+    border-radius: 12px;
+    padding: 8px 10px;
+  }
+  .row-slots {
+    display: flex;
+    gap: 6px;
+  }
+  .row-slot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+  }
+  .row-pegs {
+    display: grid;
+    grid-template-columns: repeat(2, 8px);
+    gap: 3px;
+  }
+  .row-peg {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--peg-empty);
+  }
+  .row-peg.black { background: var(--peg-black); }
+  .row-peg.white { background: var(--peg-white); border: 1px solid var(--peg-white-border); }
+
+  .current-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .slot {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--slot-empty);
+    border: 3px solid var(--slot-empty-border);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .slot.filled { border-style: solid; }
+
+  .color-picker {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .color-btn {
+    aspect-ratio: 1 / 1;
+    border-radius: 14px;
+    border: 2px solid var(--key-border);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .color-btn:active { transform: scale(0.94); }
+
+  .submit-btn {
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 14px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    touch-action: manipulation;
+    margin-bottom: 10px;
+  }
+  .submit-btn:disabled { opacity: 0.4; cursor: default; }
+  .submit-btn:active:not(:disabled) { transform: scale(0.97); background: var(--btn-bg-active); }
+
+  .start-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    transition: background .15s, transform .1s;
+    touch-action: manipulation;
+  }
+  .start-btn:active { transform: scale(0.97); background: var(--btn-bg-active); }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <button class="theme-toggle" id="theme-toggle" aria-label="Alternar modo escuro">🌙</button>
+  <h1>Mastermind</h1>
+  <p class="subtitle">Descubra as 3 cores secretas na ordem certa</p>
+
+  <div class="legend">
+    <span><i class="legend-peg black"></i> Cor e lugar certos</span>
+    <span><i class="legend-peg white"></i> Cor certa, lugar errado</span>
+  </div>
+
+  <div class="status" id="status">Toque em iniciar</div>
+
+  <div class="history" id="history"></div>
+
+  <div id="game-controls" class="hidden">
+    <div class="current-row" id="current-row"></div>
+    <div class="color-picker" id="color-picker"></div>
+    <button class="submit-btn" id="submit-guess" disabled>Confirmar tentativa</button>
+  </div>
+
+  <button class="start-btn" id="start">Iniciar jogo</button>
+</div>
+
+<script>
+(function(){
+  // Modo escuro
+  const themeToggle = document.getElementById('theme-toggle');
+  function applyTheme(theme){
+    document.documentElement.setAttribute('data-theme', theme);
+    themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    try { localStorage.setItem('mastermind-theme', theme); } catch(e) {}
+  }
+  let savedTheme = '';
+  try { savedTheme = localStorage.getItem('mastermind-theme') || ''; } catch(e) {}
+  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)){
+    applyTheme('dark');
+  } else {
+    applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+  }
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  });
+
+  const COLORS = [
+    { id: 'red',    var: '--c-red' },
+    { id: 'blue',   var: '--c-blue' },
+    { id: 'yellow', var: '--c-yellow' },
+    { id: 'green',  var: '--c-green' }
+  ];
+  const CODE_LENGTH = 3;
+  const MAX_ATTEMPTS = 10;
+
+  const statusEl = document.getElementById('status');
+  const startBtn = document.getElementById('start');
+  const historyEl = document.getElementById('history');
+  const gameControls = document.getElementById('game-controls');
+  const currentRowEl = document.getElementById('current-row');
+  const colorPickerEl = document.getElementById('color-picker');
+  const submitBtn = document.getElementById('submit-guess');
+
+  let secretCode = [];
+  let currentGuess = [];
+  let attempts = [];
+  let gameActive = false;
+
+  function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  function generateSecret(){
+    const code = [];
+    for (let i = 0; i < CODE_LENGTH; i++){
+      code.push(COLORS[randInt(0, COLORS.length - 1)].id);
+    }
+    return code;
+  }
+
+  function renderColorPicker(){
+    colorPickerEl.innerHTML = '';
+    COLORS.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'color-btn';
+      btn.style.background = 'var(' + c.var + ')';
+      btn.addEventListener('click', () => addColorToGuess(c.id));
+      colorPickerEl.appendChild(btn);
+    });
+  }
+
+  function renderCurrentRow(){
+    currentRowEl.innerHTML = '';
+    for (let i = 0; i < CODE_LENGTH; i++){
+      const slot = document.createElement('div');
+      const colorId = currentGuess[i];
+      slot.className = 'slot' + (colorId ? ' filled' : '');
+      if (colorId){
+        const colorDef = COLORS.find(c => c.id === colorId);
+        slot.style.background = 'var(' + colorDef.var + ')';
+      }
+      slot.addEventListener('click', () => removeColorAt(i));
+      currentRowEl.appendChild(slot);
+    }
+    submitBtn.disabled = currentGuess.length !== CODE_LENGTH;
+  }
+
+  function addColorToGuess(colorId){
+    if (!gameActive) return;
+    if (currentGuess.length >= CODE_LENGTH) return;
+    currentGuess.push(colorId);
+    renderCurrentRow();
+  }
+
+  function removeColorAt(i){
+    if (!gameActive) return;
+    if (i >= currentGuess.length) return;
+    currentGuess.splice(i, 1);
+    renderCurrentRow();
+  }
+
+  function evaluateGuess(guess, secret){
+    let black = 0;
+    const secretRemain = [];
+    const guessRemain = [];
+
+    for (let i = 0; i < CODE_LENGTH; i++){
+      if (guess[i] === secret[i]){
+        black++;
+      } else {
+        secretRemain.push(secret[i]);
+        guessRemain.push(guess[i]);
+      }
+    }
+
+    let white = 0;
+    guessRemain.forEach(g => {
+      const idx = secretRemain.indexOf(g);
+      if (idx !== -1){
+        white++;
+        secretRemain.splice(idx, 1);
+      }
+    });
+
+    return { black, white };
+  }
+
+  function renderHistory(){
+    historyEl.innerHTML = '';
+    attempts.forEach((att, idx) => {
+      const row = document.createElement('div');
+      row.className = 'history-row';
+
+      const slots = document.createElement('div');
+      slots.className = 'row-slots';
+      att.guess.forEach(colorId => {
+        const s = document.createElement('div');
+        s.className = 'row-slot';
+        const colorDef = COLORS.find(c => c.id === colorId);
+        s.style.background = 'var(' + colorDef.var + ')';
+        slots.appendChild(s);
+      });
+
+      const pegs = document.createElement('div');
+      pegs.className = 'row-pegs';
+      const totalPegs = [];
+      for (let i = 0; i < att.result.black; i++) totalPegs.push('black');
+      for (let i = 0; i < att.result.white; i++) totalPegs.push('white');
+      while (totalPegs.length < CODE_LENGTH) totalPegs.push('empty');
+      totalPegs.forEach(p => {
+        const peg = document.createElement('div');
+        peg.className = 'row-peg' + (p !== 'empty' ? ' ' + p : '');
+        pegs.appendChild(peg);
+      });
+
+      row.appendChild(slots);
+      row.appendChild(pegs);
+      historyEl.appendChild(row);
+    });
+  }
+
+  submitBtn.addEventListener('click', () => {
+    if (!gameActive || currentGuess.length !== CODE_LENGTH) return;
+
+    const result = evaluateGuess(currentGuess, secretCode);
+    attempts.push({ guess: currentGuess.slice(), result });
+    renderHistory();
+
+    if (result.black === CODE_LENGTH){
+      endGame(true);
+      return;
+    }
+
+    if (attempts.length >= MAX_ATTEMPTS){
+      endGame(false);
+      return;
+    }
+
+    currentGuess = [];
+    renderCurrentRow();
+    statusEl.textContent = 'Tentativa ' + (attempts.length + 1) + ' de ' + MAX_ATTEMPTS;
+  });
+
+  function endGame(won){
+    gameActive = false;
+    gameControls.classList.add('hidden');
+    if (won){
+      statusEl.textContent = 'Parabéns! Você descobriu em ' + attempts.length + ' tentativa' + (attempts.length === 1 ? '' : 's') + '! 🎉';
+    } else {
+      const secretRow = document.createElement('div');
+      secretRow.className = 'history-row';
+      const slots = document.createElement('div');
+      slots.className = 'row-slots';
+      secretCode.forEach(colorId => {
+        const s = document.createElement('div');
+        s.className = 'row-slot';
+        const colorDef = COLORS.find(c => c.id === colorId);
+        s.style.background = 'var(' + colorDef.var + ')';
+        slots.appendChild(s);
+      });
+      secretRow.appendChild(slots);
+      const label = document.createElement('span');
+      label.style.fontSize = '12px';
+      label.style.color = 'var(--text-secondary)';
+      label.textContent = 'Era essa!';
+      secretRow.appendChild(label);
+      historyEl.appendChild(secretRow);
+      statusEl.textContent = 'Acabaram as tentativas! Tente de novo!';
+    }
+    startBtn.textContent = 'Jogar de novo';
+    startBtn.classList.remove('hidden');
+  }
+
+  function startGame(){
+    secretCode = generateSecret();
+    currentGuess = [];
+    attempts = [];
+    gameActive = true;
+
+    historyEl.innerHTML = '';
+    statusEl.textContent = 'Tentativa 1 de ' + MAX_ATTEMPTS;
+    startBtn.classList.add('hidden');
+    gameControls.classList.remove('hidden');
+
+    renderColorPicker();
+    renderCurrentRow();
+  }
+
+  startBtn.addEventListener('click', startGame);
+})();
+</script>
+
+</body>
+</html>
