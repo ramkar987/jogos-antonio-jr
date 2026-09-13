@@ -22,5 +22,13 @@
     "categories": ["Sequência", "Atenção", "Educação"],
     "description": "Plante, regue, cuide e colha seguindo a sequência certa para fazer o jardim florescer.",
     "source": "Coleção original"
+  },
+  {
+    "title": "Fábrica de Sorvete",
+    "file": "jogos/fabrica-de-sorvete.html",
+    "icon": "🍦",
+    "categories": ["Sequência", "Memória", "Atenção"],
+    "description": "Monte cada pedido na ordem certa: casquinha, sabores e coberturas.",
+    "source": "Coleção original"
   }
 ]
