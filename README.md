@@ -14,9 +14,21 @@ A antiga grade de jogos evoluiu para o **Mundo Antônio Jr.**. A página inicial
 - favoritos;
 - missão do dia;
 - progresso por região;
+- álbum de conquistas;
 - tema claro/escuro.
 
 O projeto também possui um manifesto PWA e cache básico para melhorar o uso offline depois que os arquivos já foram visitados.
+
+## 🏅 Álbum de conquistas
+
+O álbum usa somente o progresso já salvo no navegador e não precisa de conta ou servidor. As conquistas são calculadas a partir de atividades como:
+
+- explorar diferentes quantidades de jogos;
+- visitar todas as regiões do Mundo;
+- jogar desafios de ação, memória, programação e números;
+- completar Missões do Dia em datas diferentes.
+
+As conquistas são progressivas e aparecem bloqueadas até que o objetivo seja atingido.
 
 ## 🗺️ Regiões
 
