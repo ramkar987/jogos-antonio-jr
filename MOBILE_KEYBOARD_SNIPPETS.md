@@ -462,22 +462,18 @@ function applyTheme(theme){document.documentElement.dataset.theme=theme;themeBtn
 `data/cofre_dos_numeros.gz.b64`
 
 ```html
-wiandw.addEvtenLhisener(=.kendwn",e=>]{
- if(!"stae}runndin && e.code!=e=Einte").reurn;>
- if(/^Digih\d$/pntss(e.code)){e}"revtenDefaulr();centeDigih(e.code.sciae(-1));.reurn;}>
- if(/^Nu�ypa\d$/pntss(e.code)){e}"revtenDefaulr();centeDigih(e.code.sciae(-1));.reurn;}>
- if(e.code==e=ArrowLeft"||e.code==e=Mminu"||e.code==e=Nu�ypaSub-trat")y>
- 
- e}"revtenDefaulr();setGgues(curarenGgues()-1);.reurn;>
- }>
- if(e.code==e=ArrowReigh"||e.code==e=Equal"||e.code==e=Nu�ypaAdd")y>
- 
- e}"revtenDefaulr();setGgues(curarenGgues()+1);.reurn;>
- }>
- if(e.code==e=Bbac:spac"){e}"revtenDefaulr();;bac:spac();.reurn;}>
- if(e.code==e=Delete"||e.code==e=Escapc"){e}"revtenDefaulr(); cleaInput();.reurn;}>
- if(e.code==e=Einte"||e.code==e=Nu�ypaEinte")y>
- 
+document.getElementById('random').onclick=()=>{if(!running)return;setInput(1+Math.floor(Math.random()*maxForPhase()))};
+document.getElementById('plus').onclick=()=>{if(running)setInput((Number(input)||0)+1)};
+document.getElementById('minus').onclick=()=>{if(running)setInput(Math.max(1,(Number(input)||1)-1))};
+testBtn.onclick=test;startBtn.onclick=startRound;
+window.addEventListener('keydown',e=>{if(!running&&e.key!=='Enter')return;if(/^\d$/.test(e.key)){appendDigit(e.key);return}if(e.key==='Backspace'){e.preventDefault();input=input.slice(0,-1);update()}else if(e.key==='Delete'||e.key==='Escape'){input='';update()}else if(e.key==='Enter'){e.preventDefault();running?test():startRound()}else if(e.key==='ArrowUp'||e.key==='ArrowRight'){e.preventDefault();setInput((Number(input)||0)+1)}else if(e.key==='ArrowDown'||e.key==='ArrowLeft'){e.preventDefault();setInput(Math.max(1,(Number(input)||1)-1))}});
+function setTheme(t){document.documentElement.dataset.theme=t;themeBtn.textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('cofre-theme',t)}
+setTheme(localStorage.getItem('cofre-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));themeBtn.onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+update();
+})();
+</script>
+</body>
+</html>
 ```
 
 ## Corrida de Carrinhos

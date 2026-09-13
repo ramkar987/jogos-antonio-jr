@@ -2,13 +2,12 @@
 
 Relatório estático gerado automaticamente. Ele aponta riscos prováveis no código; não substitui teste real em iPhone/Android.
 
-**Total analisado:** 60 arquivos de jogos · **alto:** 1 · **médio:** 3 · **baixo:** 56
+**Total analisado:** 60 arquivos de jogos · **alto:** 0 · **médio:** 3 · **baixo:** 57
 
 ## Prioridade
 
 | Risco | Jogo | Arquivo | Entradas detectadas | Motivo |
 |---|---|---|---|---|
-| ALTO | Cofre dos Números | `data/cofre_dos_numeros.gz.b64` | teclado | depende de teclado e não há controle touch evidente |
 | MÉDIO | A Aventura de Blinky | `jogos/aventura-do-blinky.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
 | MÉDIO | Jogo da Forca | `jogos/jogo-da-forca.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
 | MÉDIO | Quebra-Cabeça Deslizante | `jogos/quebra-cabeca-deslizante.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
@@ -22,6 +21,7 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | BAIXO | Cara a Cara | `jogos/cara-a-cara.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Cara Maluca | `jogos/cara-maluca.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Caça-Palavras | `jogos/caca-palavras.html` | touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Cofre dos Números | `data/cofre_dos_numeros.gz.b64` | teclado, clique, controle-na-tela | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Constrói a Ponte | `data/constroi_a_ponte.gz.b64` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Corrida de Carrinhos | `data/corrida_de_carrinhos.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Corta Frutas | `jogos/corta-frutas.html` | pointer, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
