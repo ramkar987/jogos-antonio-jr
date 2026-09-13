@@ -5,10 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 IMPORTS = ROOT / 'imports'
 GAMES_DIR = ROOT / 'jogos'
-META = ROOT / 'games-imported.json'
+CATALOG = ROOT / 'games.json'
 
 GAMES_DIR.mkdir(exist_ok=True)
-records = []
 
 KNOWN = {
     'torre-de-formas.html': ('🔺', ['Raciocínio', 'Percepção']),
@@ -60,6 +59,21 @@ def safe_extract(z: zipfile.ZipFile, dest: Path):
             raise ValueError(f'Caminho inseguro no ZIP: {member.filename}')
     z.extractall(dest)
 
+def load_catalog():
+    if not CATALOG.exists():
+        return []
+    try:
+        data = json.loads(CATALOG.read_text(encoding='utf-8'))
+        return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+catalog = load_catalog()
+manual = [r for r in catalog if r.get('origin') != 'import']
+old_imports = {r.get('file'): r for r in catalog if r.get('origin') == 'import'}
+manual_files = {r.get('file') for r in manual}
+records = []
+
 for zpath in sorted(IMPORTS.glob('*.zip')):
     work = ROOT / '.import-tmp' / zpath.stem
     if work.exists():
@@ -74,20 +88,28 @@ for zpath in sorted(IMPORTS.glob('*.zip')):
 
     for src in sorted(work.rglob('*.html')):
         name = re.sub(r'[^a-zA-Z0-9._-]+', '-', src.name).lower()
+        rel = f'jogos/{name}'
+        if rel in manual_files:
+            print(f'Ignorando {name}: já existe como jogo manual.')
+            continue
         dst = GAMES_DIR / name
         shutil.copy2(src, dst)
         title, desc = extract_meta(dst)
-        icon, categories = KNOWN.get(name, ('🎮', ['Importado']))
+        old = old_imports.get(rel, {})
+        icon, categories = KNOWN.get(name, (old.get('icon', '🎮'), old.get('categories', ['Importado'])))
         records.append({
-            'title': title,
-            'file': f'jogos/{name}',
+            'id': old.get('id') or Path(name).stem,
+            'title': old.get('title') or title,
+            'file': rel,
             'icon': icon,
             'categories': categories,
-            'description': desc,
+            'description': old.get('description') or desc,
+            'origin': 'import',
             'source': zpath.name,
         })
 
 by_file = {r['file']: r for r in records}
-records = sorted(by_file.values(), key=lambda r: r['title'].casefold())
-META.write_text(json.dumps(records, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
-print(f'{len(records)} jogos importados.')
+imports = sorted(by_file.values(), key=lambda r: r['title'].casefold())
+final = manual + imports
+CATALOG.write_text(json.dumps(final, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+print(f'{len(imports)} jogos importados; {len(final)} jogos no catálogo total.')
