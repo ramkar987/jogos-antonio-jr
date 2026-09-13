@@ -1,0 +1,39 @@
+name: Auditoria mobile
+
+on:
+  push:
+    paths:
+      - 'scripts/mobile_audit_fix.py'
+      - '.github/workflows/mobile-audit.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auditoria-mobile
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Auditar e aplicar correções mobile iniciais
+        run: python scripts/mobile_audit_fix.py
+      - name: Publicar ajustes e relatório
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js jogos/atravessa-a-rua.html scripts/import_games.py MOBILE_AUDIT.md
+          if git diff --cached --quiet; then
+            echo 'Nenhuma alteração para publicar.'
+            exit 0
+          fi
+          git commit -m 'fix: iniciar compatibilidade mobile e auditoria dos jogos'
+          git push
