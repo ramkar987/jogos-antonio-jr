@@ -8,6 +8,7 @@ on:
       - 'scripts/patch_floresta_mobile.py'
       - 'scripts/repair_legacy_gzip.py'
       - 'scripts/rebuild_cofre.py'
+      - 'scripts/refine_mobile_report.py'
       - '.github/workflows/mobile-audit.yml'
   workflow_dispatch:
 
@@ -36,6 +37,8 @@ jobs:
         run: python scripts/patch_floresta_mobile.py
       - name: Auditar e aplicar correções mobile iniciais
         run: python scripts/mobile_audit_fix.py
+      - name: Refinar auditoria aos jogos do catálogo
+        run: python scripts/refine_mobile_report.py
       - name: Detalhar controles de teclado
         run: python scripts/mobile_inspect.py
       - name: Publicar ajustes e relatórios
