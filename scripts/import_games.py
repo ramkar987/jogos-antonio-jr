@@ -51,6 +51,29 @@ def extract_meta(path: Path):
     desc = clean_text(p_m.group(1)) if p_m else 'Jogo importado para a coleção do Antônio Jr.'
     return title[:100], desc[:180]
 
+def apply_mobile_fixes(path: Path):
+    # Correções persistentes para jogos importados do ZIP original.
+    # Assim um novo processamento de imports/ não desfaz ajustes de celular.
+    if path.name == 'atravessa-a-rua.html':
+        text = path.read_text(encoding='utf-8', errors='replace')
+        text = text.replace(
+            'Use as setas do teclado para atravessar sem ser atropelado nem cair na água!',
+            'Use as setas do teclado ou os botões abaixo para atravessar sem ser atropelado nem cair na água!'
+        )
+        controls = """\n  <div class=\"controls\" aria-label=\"Controles de movimento\">\n    <button class=\"ctrl-btn ctrl-up\" data-move=\"up\" aria-label=\"Mover para cima\">▲</button>\n    <button class=\"ctrl-btn ctrl-left\" data-move=\"left\" aria-label=\"Mover para esquerda\">◀</button>\n    <button class=\"ctrl-btn ctrl-down\" data-move=\"down\" aria-label=\"Mover para baixo\">▼</button>\n    <button class=\"ctrl-btn ctrl-right\" data-move=\"right\" aria-label=\"Mover para direita\">▶</button>\n  </div>\n"""
+        marker = '  <button class=\"start-btn\" id=\"start\">Iniciar jogo</button>'
+        if 'data-move=\"up\"' not in text and marker in text:
+            text = text.replace(marker, controls + '\n' + marker, 1)
+        keyboard = """  document.addEventListener('keydown', (e) => {\n    if (!gameActive) return;\n    switch(e.key){\n      case 'ArrowUp': case 'w': case 'W':\n        movePlayer(-1, 0); e.preventDefault(); break;\n      case 'ArrowDown': case 's': case 'S':\n        movePlayer(1, 0); e.preventDefault(); break;\n      case 'ArrowLeft': case 'a': case 'A':\n        movePlayer(0, -1); e.preventDefault(); break;\n      case 'ArrowRight': case 'd': case 'D':\n        movePlayer(0, 1); e.preventDefault(); break;\n    }\n  });\n"""
+        if 'const MOVE_DIRS' not in text and keyboard in text:
+            extra = keyboard + """\n  const MOVE_DIRS = {up:[-1,0], down:[1,0], left:[0,-1], right:[0,1]};\n  document.querySelectorAll('[data-move]').forEach(btn => {\n    btn.addEventListener('pointerdown', (e) => {\n      e.preventDefault();\n      const dir = MOVE_DIRS[btn.dataset.move];\n      if (dir) movePlayer(dir[0], dir[1]);\n    });\n  });\n"""
+            text = text.replace(keyboard, extra, 1)
+        text = text.replace(
+            "statusEl.textContent = 'Vai! Use as setas do teclado pra atravessar';",
+            "statusEl.textContent = 'Vai! Use as setas ou os botões para atravessar';"
+        )
+        path.write_text(text, encoding='utf-8')
+
 def safe_extract(z: zipfile.ZipFile, dest: Path):
     base = dest.resolve()
     for member in z.infolist():
@@ -94,6 +117,7 @@ for zpath in sorted(IMPORTS.glob('*.zip')):
             continue
         dst = GAMES_DIR / name
         shutil.copy2(src, dst)
+        apply_mobile_fixes(dst)
         title, desc = extract_meta(dst)
         old = old_imports.get(rel, {})
         icon, categories = KNOWN.get(name, (old.get('icon', '🎮'), old.get('categories', ['Importado'])))

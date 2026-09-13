@@ -54,7 +54,9 @@ function toggleFavorite(id){
 function openGame(id){
   const g=games.find(x=>x.id===id); if(!g) return;
   markPlayed(id); render(); renderMission();
-  window.open(g.file,'_blank','noopener');
+  const touchDevice = (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+  if(touchDevice) location.assign(g.file);
+  else window.open(g.file,'_blank','noopener');
 }
 
 function updateWorld(){
