@@ -7,17 +7,22 @@
   <meta name="description" content="Mundo Antônio Jr. — uma coleção de jogos infantis para brincar, pensar, criar e aprender.">
   <link rel="manifest" href="manifest.webmanifest">
   <title>Mundo Antônio Jr.</title>
-  <link rel="stylesheet" href="style.css?v=20260913-2325">
+  <link rel="stylesheet" href="style.css?v=20260913-2332">
 </head>
 <body>
 <header class="top"><div class="wrap topin"><div class="brand"><div class="logo">🌎</div><div><h1>Mundo Antônio Jr.</h1><small>Um universo de jogos feito em casa</small></div></div><button id="theme" class="iconbtn" aria-label="Alternar tema">🌙</button></div></header>
 <main class="wrap">
   <section class="hero">
-    <article class="hero-main"><p class="eyebrow">BEM-VINDO AO MUNDO</p><h2>Explore, jogue e colecione estrelas.</h2><p>Agora a coleção virou um mundo: cada região reúne um tipo de desafio, e cada jogo explorado rende uma estrela no seu álbum local.</p><div class="hero-actions"><button id="random" class="btn primary">🎲 Jogo aleatório</button><a class="btn" href="#mundo">Explorar o mapa</a></div></article>
-    <aside class="hero-side"><div class="hero-metric"><span class="big-num" id="gameCount">…</span><strong>jogos</strong></div><div class="hero-metric"><span class="big-num" id="starCount">0</span><strong>estrelas</strong></div><div class="hero-metric"><span class="big-num" id="favoriteCount">0</span><strong>favoritos</strong></div><span id="progressText">Carregando…</span></aside>
+    <article class="hero-main"><p class="eyebrow">BEM-VINDO AO MUNDO</p><h2>Explore, jogue e colecione estrelas.</h2><p>Cada região reúne um tipo de desafio. Explore jogos, cumpra a missão do dia e desbloqueie conquistas no seu álbum.</p><div class="hero-actions"><button id="random" class="btn primary">🎲 Jogo aleatório</button><a class="btn" href="#mundo">Explorar o mapa</a><a class="btn" href="#album">🏅 Meu álbum</a></div></article>
+    <aside class="hero-side"><div class="hero-metric"><span class="big-num" id="gameCount">…</span><strong>jogos</strong></div><div class="hero-metric"><span class="big-num" id="starCount">0</span><strong>estrelas</strong></div><div class="hero-metric"><span class="big-num" id="achievementCount">0</span><strong>conquistas</strong></div><div class="hero-metric"><span class="big-num" id="favoriteCount">0</span><strong>favoritos</strong></div><span id="progressText">Carregando…</span></aside>
   </section>
 
   <section id="mission" class="mission"></section>
+
+  <section id="album" class="album-section">
+    <div class="heading"><div><p class="eyebrow">ÁLBUM DE CONQUISTAS</p><h2>Seu progresso pelo Mundo</h2></div><span id="achievementText">Carregando conquistas…</span></div>
+    <div id="albumGrid" class="album-grid"></div>
+  </section>
 
   <section id="mundo" class="world-section"><div class="heading"><div><p class="eyebrow">O MAPA</p><h2>Escolha uma região</h2></div><button class="btn" id="allZones">Ver mundo inteiro</button></div><div id="world" class="world"></div></section>
 
@@ -31,6 +36,7 @@
   <div class="notice"><strong>👂🎨 Experimentos de audição e percepção de cores:</strong> são brincadeiras lúdicas e não substituem avaliação profissional.</div>
 </main>
 <footer class="footer"><div class="wrap">Mundo Antônio Jr. 💜 · HTML + CSS + JavaScript · progresso salvo somente neste navegador</div></footer>
-<script src="app.js?v=20260913-2325"></script>
+<script src="app.js?v=20260913-2332"></script>
+<script src="album.js?v=20260913-2332"></script>
 </body>
 </html>
