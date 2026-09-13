@@ -30,5 +30,13 @@
     "categories": ["Sequência", "Memória", "Atenção"],
     "description": "Monte cada pedido na ordem certa: casquinha, sabores e coberturas.",
     "source": "Coleção original"
+  },
+  {
+    "title": "Encaixa Cano",
+    "file": "jogos/encaixa-cano.html",
+    "icon": "🔧",
+    "categories": ["Raciocínio", "Quebra-cabeça", "Atenção"],
+    "description": "Gire os canos e crie um caminho contínuo para levar a água da torneira até a plantinha.",
+    "source": "Coleção original"
   }
 ]
