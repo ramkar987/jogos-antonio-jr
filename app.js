@@ -91,24 +91,31 @@ function setTheme(t) {
 setTheme(localStorage.getItem('antonio-jr-theme') || (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light'));
 themeBtn.onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
 
+function normalizeGame(g, fallbackSource) {
+  return {
+    title: g.title || 'Jogo',
+    file: g.file,
+    icon: g.icon || '🎮',
+    categories: Array.isArray(g.categories) ? g.categories : ['Outros'],
+    description: g.description || 'Jogo da coleção do Antônio Jr.',
+    source: g.source || fallbackSource
+  };
+}
+
 (async () => {
-  try {
-    const r = await fetch(`games-imported.json?v=${Date.now()}`, {cache:'no-store'});
-    if (r.ok) {
-      const imported = await r.json();
-      if (Array.isArray(imported)) {
-        games.push(...imported.map(g => ({
-          title: g.title || 'Jogo importado',
-          file: g.file,
-          icon: g.icon || '🎮',
-          categories: Array.isArray(g.categories) ? g.categories : ['Importado'],
-          description: g.description || 'Jogo importado para a coleção do Antônio Jr.',
-          source: g.source || 'Importado'
-        })));
-      }
+  const catalogs = [
+    ['games-imported.json', 'Importado'],
+    ['games-custom.json', 'Coleção original']
+  ];
+  for (const [url, source] of catalogs) {
+    try {
+      const r = await fetch(`${url}?v=${Date.now()}`, {cache:'no-store'});
+      if (!r.ok) continue;
+      const list = await r.json();
+      if (Array.isArray(list)) games.push(...list.map(g => normalizeGame(g, source)));
+    } catch (err) {
+      console.warn(`Não foi possível carregar ${url}:`, err);
     }
-  } catch (err) {
-    console.warn('Não foi possível carregar jogos importados:', err);
   }
   updateCategories();
   render();
