@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Jardim Mágico</title>
+<style>
+:root{--bg:#f7f4e8;--card:#fffdf7;--ink:#2d312b;--muted:#787b72;--green:#639922;--green2:#7fb33d;--soil:#9a6744;--soil2:#744b31;--line:#ded9ca;--accent:#ef9f27;--purple:#3c3489;--bad:#e24b4a;--shadow:rgba(55,48,35,.12)}
+[data-theme="dark"]{--bg:#171914;--card:#24271f;--ink:#f1efe7;--muted:#aaa99f;--soil:#704b34;--soil2:#503422;--line:#44463e;--shadow:rgba(0,0,0,.35);--green2:#8fbd52}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}body{padding:18px;display:flex;justify-content:center}.game{width:min(760px,100%)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.titlebox h1{margin:0;font-size:clamp(24px,4vw,36px);color:var(--purple)}.titlebox p{margin:3px 0 0;color:var(--muted);font-size:14px}.theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;width:44px;height:44px;font-size:20px;cursor:pointer}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 28px var(--shadow);padding:16px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.stat{background:color-mix(in srgb,var(--card) 70%,var(--bg));border:1px solid var(--line);border-radius:14px;padding:9px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:19px}.status{min-height:26px;text-align:center;font-weight:700;margin:3px 0 12px}.status.good{color:var(--green)}.status.bad{color:var(--bad)}
+.legend{display:flex;justify-content:center;flex-wrap:wrap;gap:7px;margin-bottom:13px}.tool{border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:9px 11px;cursor:pointer;font-weight:700;font-size:14px;touch-action:manipulation}.tool span{font-size:20px;margin-right:5px}.tool.active{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent);transform:translateY(-1px)}
+.garden{position:relative;overflow:hidden;border-radius:20px;border:2px solid #8cc9dd;background:linear-gradient(#bfeafb 0 47%,#89c860 47% 64%,#6ca144 64%);min-height:420px;padding:92px 14px 14px}.sun{position:absolute;right:24px;top:18px;font-size:52px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.1))}.cloud{position:absolute;left:24px;top:24px;font-size:42px;opacity:.9}.beds{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;position:relative;z-index:2}.bed{min-height:285px;border:3px solid var(--soil2);border-radius:24px;background:linear-gradient(180deg,#b47a50,#8b5a3c);padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;cursor:pointer;touch-action:manipulation;box-shadow:inset 0 8px 0 rgba(255,255,255,.08),0 7px 14px rgba(60,50,30,.16)}.bed.selected{outline:4px solid #ffd45d;outline-offset:2px}.crop{font-size:14px;font-weight:800;background:rgba(255,255,255,.86);color:#292c27;border-radius:999px;padding:5px 10px}.plant{height:118px;display:grid;place-items:end center;font-size:70px;transition:transform .2s}.plant.pop{animation:pop .35s}.steps{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}.step{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.35);font-size:19px;opacity:.48}.step.done{opacity:1;background:#dff1b8;border-color:#b5d36c}.step.next{opacity:1;background:#fff0aa;border-color:#efbf39;animation:pulse 1s infinite}.step.wrong{animation:shake .28s}.hint{font-size:12px;color:#fff6e7;background:rgba(70,42,27,.35);padding:4px 8px;border-radius:9px;text-align:center}.footer{display:flex;gap:8px;margin-top:12px}.btn{flex:1;border:0;border-radius:15px;padding:13px;font-weight:800;font-size:15px;cursor:pointer}.primary{background:var(--purple);color:white}.secondary{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.overlay{position:absolute;inset:0;display:none;place-items:center;background:rgba(20,25,15,.72);z-index:10;padding:18px}.overlay.show{display:grid}.modal{background:var(--card);color:var(--ink);border-radius:22px;padding:22px;max-width:390px;text-align:center;box-shadow:0 15px 40px rgba(0,0,0,.3)}.modal .big{font-size:58px}.modal h2{margin:4px 0 8px}.modal p{color:var(--muted)}
+@keyframes pulse{50%{transform:scale(1.08)}}@keyframes pop{50%{transform:scale(1.18)}}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media(max-width:620px){body{padding:10px}.stats{grid-template-columns:repeat(2,1fr)}.garden{padding:78px 8px 8px;min-height:610px}.beds{grid-template-columns:1fr}.bed{min-height:155px;display:grid;grid-template-columns:110px 1fr;grid-template-rows:auto 1fr auto;column-gap:8px}.crop{grid-column:1;grid-row:1}.plant{grid-column:1;grid-row:2 / 4;height:100px;font-size:62px}.steps{grid-column:2;grid-row:2}.hint{grid-column:2;grid-row:3}.sun{font-size:44px;right:16px}.cloud{font-size:36px;left:14px}}
+</style>
+</head>
+<body>
+<main class="game">
+  <div class="top"><div class="titlebox"><h1>🌻 Jardim Mágico</h1><p>Cuide das plantas na ordem certa e faça o jardim florescer.</p></div><button class="theme" id="theme" aria-label="Alternar tema">🌙</button></div>
+  <section class="panel">
+    <div class="stats">
+      <div class="stat"><small>⭐ Pontos</small><strong id="score">0</strong></div>
+      <div class="stat"><small>🌿 Fase</small><strong id="level">1</strong></div>
+      <div class="stat"><small>🧺 Colhidos</small><strong id="harvest">0 / 9</strong></div>
+      <div class="stat"><small>🏆 Recorde</small><strong id="best">0</strong></div>
+    </div>
+    <div id="status" class="status">Escolha um canteiro e siga a sequência.</div>
+    <div class="legend" id="tools"></div>
+    <div class="garden" id="garden">
+      <div class="sun">☀️</div><div class="cloud">☁️</div>
+      <div class="beds" id="beds"></div>
+      <div class="overlay" id="overlay"><div class="modal"><div class="big">🌈🌻</div><h2>Jardim completo!</h2><p id="finalText"></p><button class="btn primary" id="again">Jogar novamente</button></div></div>
+    </div>
+    <div class="footer"><button class="btn secondary" id="hintBtn">💡 Dica</button><button class="btn primary" id="restart">🔄 Reiniciar</button></div>
+  </section>
+</main>
+<script>
+(()=>{
+const ACTIONS={seed:{icon:'🌱',label:'Plantar'},water:{icon:'💧',label:'Regar'},sun:{icon:'☀️',label:'Dar sol'},care:{icon:'🪄',label:'Cuidar'},harvest:{icon:'🧺',label:'Colher'}};
+const CROPS=[
+ {name:'Girassol',emoji:'🌻',young:['🟤','🌱','🌿','🌼','🌻'],base:['seed','water','sun','harvest']},
+ {name:'Morango',emoji:'🍓',young:['🟤','🌱','🌿','🌸','🍓'],base:['seed','water','sun','water','harvest']},
+ {name:'Cenoura',emoji:'🥕',young:['🟤','🌱','🌿','🥬','🥕'],base:['seed','water','care','sun','harvest']},
+ {name:'Tomate',emoji:'🍅',young:['🟤','🌱','🌿','🌼','🍅'],base:['seed','water','sun','care','harvest']},
+ {name:'Tulipa',emoji:'🌷',young:['🟤','🌱','🌿','🌷','🌷'],base:['seed','water','care','sun','water','harvest']}
+];
+const tools=document.getElementById('tools'),bedsEl=document.getElementById('beds'),statusEl=document.getElementById('status'),scoreEl=document.getElementById('score'),levelEl=document.getElementById('level'),harvestEl=document.getElementById('harvest'),bestEl=document.getElementById('best');
+let score=0,harvested=0,level=1,selected=0,tool='seed',beds=[],busy=false;
+let best=Number(localStorage.getItem('jardim-magico-best')||0);bestEl.textContent=best;
+function sound(freq=520,dur=.08){try{const A=window.AudioContext||window.webkitAudioContext;const c=window._gardenAudio||(window._gardenAudio=new A());const o=c.createOscillator(),g=c.createGain();o.frequency.value=freq;o.type='sine';g.gain.setValueAtTime(.08,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+dur);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+dur)}catch(e){}}
+function sequenceFor(c){let s=[...c.base];if(level>=3 && s.length<6)s.splice(s.length-1,0,'care');return s}
+function newBed(i){const c=CROPS[(i+level+harvested)%Math.min(CROPS.length,level+2)];return{crop:c,seq:sequenceFor(c),step:0,done:false}}
+function resetBeds(){beds=[newBed(0),newBed(1),newBed(2)];selected=0;renderBeds()}
+function renderTools(){tools.innerHTML=Object.entries(ACTIONS).map(([k,a])=>`<button class="tool ${k===tool?'active':''}" data-tool="${k}"><span>${a.icon}</span>${a.label}</button>`).join('')}
+function plantEmoji(b){if(b.done)return '✨'+b.crop.emoji;const n=Math.max(0,Math.min(b.crop.young.length-1,Math.floor((b.step/Math.max(1,b.seq.length-1))*(b.crop.young.length-1))));return b.crop.young[n]}
+function renderBeds(){bedsEl.innerHTML=beds.map((b,i)=>`<div class="bed ${i===selected?'selected':''}" data-bed="${i}"><div class="crop">${b.crop.emoji} ${b.crop.name}</div><div class="plant">${plantEmoji(b)}</div><div class="steps">${b.seq.map((s,n)=>`<div class="step ${n<b.step?'done':n===b.step&&!b.done?'next':''}" title="${ACTIONS[s].label}">${ACTIONS[s].icon}</div>`).join('')}</div><div class="hint">${b.done?'Prontinho! ✨':'Passo '+(b.step+1)+' de '+b.seq.length}</div></div>`).join('')}
+function setStatus(t,kind=''){statusEl.textContent=t;statusEl.className='status '+kind}
+function updateStats(){scoreEl.textContent=score;levelEl.textContent=level;harvestEl.textContent=harvested+' / 9';if(score>best){best=score;bestEl.textContent=best;localStorage.setItem('jardim-magico-best',best)}}
+function act(){if(busy)return;const b=beds[selected];if(!b||b.done){setStatus('Escolha um canteiro que ainda esteja crescendo.');return}const expected=b.seq[b.step];if(tool!==expected){score=Math.max(0,score-5);setStatus(`Quase! ${b.crop.name} precisa de ${ACTIONS[expected].icon} ${ACTIONS[expected].label.toLowerCase()} agora.`,'bad');sound(180,.12);const bed=bedsEl.children[selected];bed.querySelector('.step.next')?.classList.add('wrong');setTimeout(()=>bed.querySelector('.step.next')?.classList.remove('wrong'),300);updateStats();return}busy=true;b.step++;score+=10+level*2;sound(600+b.step*70,.08);if(b.step>=b.seq.length){b.done=true;harvested++;score+=30+level*5;setStatus(`${b.crop.emoji} ${b.crop.name} pronto! Bela colheita!`,'good');sound(900,.16)}else setStatus(`Muito bem! Agora vem ${ACTIONS[b.seq[b.step]].icon} ${ACTIONS[b.seq[b.step]].label}.`,'good');updateStats();renderBeds();setTimeout(()=>{busy=false;afterAction()},260)}
+function afterAction(){if(harvested>=9){finish();return}if(beds.every(b=>b.done)){level=Math.min(5,level+1);setStatus('Nova fase! As sequências ficaram um pouquinho maiores. 🌟','good');resetBeds();updateStats()}}
+function finish(){document.getElementById('finalText').textContent=`Você colheu 9 plantas e fez ${score} pontos. Recorde: ${best}!`;document.getElementById('overlay').classList.add('show')}
+function restart(){score=0;harvested=0;level=1;tool='seed';busy=false;document.getElementById('overlay').classList.remove('show');renderTools();resetBeds();updateStats();setStatus('Escolha um canteiro e siga a sequência.')}
+tools.addEventListener('click',e=>{const b=e.target.closest('[data-tool]');if(!b)return;tool=b.dataset.tool;renderTools();setStatus(`${ACTIONS[tool].icon} ${ACTIONS[tool].label} selecionado. Agora toque no canteiro.`)});
+bedsEl.addEventListener('click',e=>{const bed=e.target.closest('[data-bed]');if(!bed)return;selected=Number(bed.dataset.bed);renderBeds();act()});
+document.getElementById('hintBtn').onclick=()=>{const b=beds[selected];if(b&&!b.done)setStatus(`Dica: o próximo cuidado é ${ACTIONS[b.seq[b.step]].icon} ${ACTIONS[b.seq[b.step]].label}.`);else setStatus('Escolha outro canteiro para continuar.')};
+document.getElementById('restart').onclick=restart;document.getElementById('again').onclick=restart;
+const theme=document.getElementById('theme');function setTheme(t){document.documentElement.dataset.theme=t;theme.textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('jardim-magico-theme',t)}setTheme(localStorage.getItem('jardim-magico-theme')||'light');theme.onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+renderTools();resetBeds();updateStats();
+})();
+</script>
+</body>
+</html>
