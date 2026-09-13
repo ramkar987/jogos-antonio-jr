@@ -2,15 +2,13 @@
 
 Relatório estático gerado automaticamente. Ele aponta riscos prováveis no código; não substitui teste real em iPhone/Android.
 
-**Total analisado:** 60 arquivos de jogos · **alto:** 0 · **médio:** 3 · **baixo:** 57
+**Total analisado:** 59 jogos do catálogo · **alto:** 0 · **médio:** 0 · **baixo:** 59
 
 ## Prioridade
 
 | Risco | Jogo | Arquivo | Entradas detectadas | Motivo |
 |---|---|---|---|---|
-| MÉDIO | A Aventura de Blinky | `jogos/aventura-do-blinky.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
-| MÉDIO | Jogo da Forca | `jogos/jogo-da-forca.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
-| MÉDIO | Quebra-Cabeça Deslizante | `jogos/quebra-cabeca-deslizante.html` | teclado, clique | usa teclado; há clique, mas o controle mobile precisa ser validado |
+| BAIXO | A Aventura de Blinky | `jogos/aventura-do-blinky.html` | teclado, clique | teclado é atalho; comandos principais são botões/blocos clicáveis |
 | BAIXO | Apaga-Incêndio | `data/apaga_incendio.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Atravessa a Rua | `jogos/atravessa-a-rua.html` | teclado, pointer, clique, controle-na-tela | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Balança Maluca | `jogos/balanca-maluca.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
@@ -37,11 +35,11 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | BAIXO | Fábrica de Pintinhos | `jogos/fabrica-de-pintinhos.html` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Fábrica de Sorvete | `jogos/fabrica-de-sorvete.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jardim Mágico | `jogos/jardim-magico.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Jogo da Forca | `jogos/jogo-da-forca.html` | teclado, clique | teclado físico é atalho; há teclado virtual clicável na tela |
 | BAIXO | Jogo da Memória | `jogos/jogo-da-memoria.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jogo da Velha | `jogos/jogo-da-velha.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jogo de Damas | `jogos/jogo-de-damas.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jogo dos Quadradinhos | `jogos/jogo-dos-quadradinhos.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
-| BAIXO | Jogos do Antônio Jr. | `jogos/novos-jogos.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Labirinto Elétrico | `jogos/labirinto-eletrico.html` | touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Ligue 4 | `jogos/ligue-4.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Limpa o Oceano | `jogos/limpa-o-oceano.html` | teclado, pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
@@ -54,6 +52,7 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | BAIXO | Pescaria | `data/pescaria.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Qual é o Intruso? | `data/qual_e_o_intruso.gz.b64` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Quebra-Blocos | `data/quebra_blocos.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Quebra-Cabeça Deslizante | `jogos/quebra-cabeca-deslizante.html` | teclado, clique | setas são atalho; as peças podem ser movidas por toque/clique |
 | BAIXO | Resta Um | `jogos/resta-um.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Robô Programável | `data/robo_programavel.gz.b64` | teclado, clique, controle-na-tela | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Salva-Bichinhos | `data/salva_bichinhos.gz.b64` | teclado, pointer, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
