@@ -1,0 +1,65 @@
+name: Ajustes finais Mundo v2
+
+on:
+  push:
+    paths:
+      - '.github/workflows/patch-mundo-v2.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Ajustar jogos e data local
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('jogos/novos-jogos.html')
+          s = p.read_text(encoding='utf-8')
+
+          maquina = r'''function maquina(){let n=level<4?3:4,size=n*n,state=Array(size).fill(true),solution=Array.from({length:size},()=>Math.random()<.45);if(solution.every(v=>!v))solution[0]=true;function toggle(arr,i){let r=Math.floor(i/n),c=i%n;[[r,c],[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([y,x])=>{if(y>=0&&y<n&&x>=0&&x<n)arr[y*n+x]=!arr[y*n+x]})}solution.forEach((v,i)=>{if(v)toggle(state,i)});game.innerHTML=`<div class="tiny">Clique numa engrenagem: ela e as vizinhas mudam entre parada e girando.</div><div class="grid" id="gears" style="grid-template-columns:repeat(${n},1fr)"></div>`;function draw(){let g=$('#gears');g.innerHTML='';state.forEach((on,i)=>{let c=document.createElement('button');c.className='cell gear '+(on?'on':'');c.textContent='⚙️';c.onclick=()=>{toggle(state,i);draw();if(state.every(Boolean)){win('Máquina funcionando!');next();setTimeout(maquina,700)}};g.appendChild(c)})}draw();setStatus('Faça TODAS as engrenagens girarem.')}'''
+          s, n1 = re.subn(r'function maquina\(\)\{.*?\nfunction labirinto\(\)', maquina + '\nfunction labirinto()', s, count=1, flags=re.S)
+          if n1 != 1:
+              raise SystemExit('Não foi possível ajustar Máquina Maluca')
+
+          arquiteto = r'''function arquiteto(){const R=['🛏️','🍳','🛋️','🚿','🌳','📚','🎮','🍽️','🚪'];let correct=shuffle(R),corner=correct[0],pair=[correct[1],correct[2]],wrong1=correct.slice(),wrong2=correct.slice();[wrong1[0],wrong1[4]]=[wrong1[4],wrong1[0]];[wrong2[2],wrong2[8]]=[wrong2[8],wrong2[2]];function adj(a,b,p){let ia=p.indexOf(a),ib=p.indexOf(b),ra=Math.floor(ia/3),ca=ia%3,rb=Math.floor(ib/3),cb=ib%3;return Math.abs(ra-rb)+Math.abs(ca-cb)===1}let plans=shuffle([correct,wrong1,wrong2]);game.innerHTML=`<div class="panel"><b>Regras:</b><br>• ${pair[0]} deve ficar ao lado de ${pair[1]}<br>• ${corner} deve ficar em um canto.</div><div class="plans" id="plans"></div>`;plans.forEach((plan,i)=>{let b=document.createElement('button');b.className='planbtn';b.innerHTML=`<div class="tiny">PLANTA ${i+1}</div><div class="plan">${plan.map(x=>`<div class="room">${x}</div>`).join('')}</div>`;b.onclick=()=>{let cornerOk=[0,2,6,8].includes(plan.indexOf(corner)),ok=adj(pair[0],pair[1],plan)&&cornerOk;if(ok){win('Projeto aprovado!');next();setTimeout(arquiteto,700)}else miss('Essa planta quebra uma das regras.')};$('#plans').appendChild(b)});setStatus('Qual planta respeita todas as regras?')}'''
+          s, n2 = re.subn(r'function arquiteto\(\)\{.*?\nfunction ilha\(\)', arquiteto + '\nfunction ilha()', s, count=1, flags=re.S)
+          if n2 != 1:
+              raise SystemExit('Não foi possível ajustar Pequeno Arquiteto')
+          p.write_text(s, encoding='utf-8')
+
+          a = Path('app.js')
+          t = a.read_text(encoding='utf-8')
+          old = "const today = new Date().toISOString().slice(0,10);"
+          new = "const now=new Date(); const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;"
+          if old not in t:
+              raise SystemExit('Linha de data não encontrada')
+          a.write_text(t.replace(old,new,1), encoding='utf-8')
+          PY
+      - name: Validar JavaScript e catálogo
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+          json.loads(Path('games.json').read_text(encoding='utf-8'))
+          html=Path('jogos/novos-jogos.html').read_text(encoding='utf-8')
+          js=re.search(r'<script>(.*)</script>',html,re.S).group(1)
+          Path('/tmp/novos.js').write_text(js,encoding='utf-8')
+          PY
+          node --check app.js
+          node --check /tmp/novos.js
+      - name: Publicar ajustes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.js jogos/novos-jogos.html
+          git commit -m 'fix: garantir puzzles solucionáveis e data local'
+          git push
