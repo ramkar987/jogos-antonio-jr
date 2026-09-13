@@ -20,7 +20,7 @@ const missionEl = document.getElementById('mission');
 const gameCount = document.getElementById('gameCount');
 const starCount = document.getElementById('starCount');
 const favoriteCount = document.getElementById('favoriteCount');
-const today = new Date().toISOString().slice(0,10);
+const now=new Date(); const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
 const PROGRESS_KEY = 'antonio-jr-progress-v2';
 
 function safeParse(v, fallback) { try { return JSON.parse(v) ?? fallback; } catch { return fallback; } }
