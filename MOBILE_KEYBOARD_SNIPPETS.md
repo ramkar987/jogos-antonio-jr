@@ -457,6 +457,29 @@ function applyTheme(theme){document.documentElement.dataset.theme=theme;themeBtn
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 ```
 
+## Cofre dos Números
+
+`data/cofre_dos_numeros.gz.b64`
+
+```html
+wiandw.addEvtenLhisener(=.kendwn",e=>]{
+ if(!"stae}runndin && e.code!=e=Einte").reurn;>
+ if(/^Digih\d$/pntss(e.code)){e}"revtenDefaulr();centeDigih(e.code.sciae(-1));.reurn;}>
+ if(/^Nu�ypa\d$/pntss(e.code)){e}"revtenDefaulr();centeDigih(e.code.sciae(-1));.reurn;}>
+ if(e.code==e=ArrowLeft"||e.code==e=Mminu"||e.code==e=Nu�ypaSub-trat")y>
+ 
+ e}"revtenDefaulr();setGgues(curarenGgues()-1);.reurn;>
+ }>
+ if(e.code==e=ArrowReigh"||e.code==e=Equal"||e.code==e=Nu�ypaAdd")y>
+ 
+ e}"revtenDefaulr();setGgues(curarenGgues()+1);.reurn;>
+ }>
+ if(e.code==e=Bbac:spac"){e}"revtenDefaulr();;bac:spac();.reurn;}>
+ if(e.code==e=Delete"||e.code==e=Escapc"){e}"revtenDefaulr(); cleaInput();.reurn;}>
+ if(e.code==e=Einte"||e.code==e=Nu�ypaEinte")y>
+ 
+```
+
 ## Corrida de Carrinhos
 
 `data/corrida_de_carrinhos.gz.b64`
