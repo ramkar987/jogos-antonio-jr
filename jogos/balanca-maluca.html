@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Balança Maluca</title>
+<style>
+:root{--bg:#fff8ec;--card:#fff;--text:#2c2c2a;--muted:#77746c;--purple:#3c3489;--blue:#378add;--orange:#ef9f27;--green:#639922;--red:#e24b4a;--line:#d8d3c4;--pan:#e8e4d8;--shadow:rgba(0,0,0,.09)}
+[data-theme="dark"]{--bg:#1c1b18;--card:#282720;--text:#f2f0e8;--muted:#aaa69b;--purple:#b4acf2;--blue:#6aa9e9;--orange:#f1ad43;--green:#8dbd55;--red:#f06c69;--line:#4b483f;--pan:#3a382f;--shadow:rgba(0,0,0,.35)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}body{display:flex;justify-content:center;padding:18px}.card{width:min(720px,100%);background:var(--card);border-radius:24px;padding:20px;box-shadow:0 10px 32px var(--shadow);position:relative}.theme{position:absolute;right:16px;top:16px;border:2px solid var(--line);background:transparent;color:var(--text);border-radius:50%;width:42px;height:42px;font-size:19px;cursor:pointer}h1{margin:0;color:var(--purple);font-size:clamp(24px,5vw,34px)}.sub{margin:5px 48px 16px 0;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.stat{padding:8px;border:1px solid var(--line);border-radius:12px;text-align:center}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:20px}.status{text-align:center;font-weight:700;min-height:24px;margin:10px 0;color:var(--purple)}.challenge{background:color-mix(in srgb,var(--blue) 10%,transparent);border:1px solid color-mix(in srgb,var(--blue) 35%,var(--line));border-radius:16px;padding:10px 12px;text-align:center;margin-bottom:14px}.challenge strong{color:var(--blue)}
+.scale-area{height:290px;position:relative;margin:0 auto 14px;overflow:hidden;border-radius:20px;background:linear-gradient(to bottom,color-mix(in srgb,var(--blue) 9%,transparent),transparent 72%);border:1px solid var(--line)}.beam-wrap{position:absolute;left:6%;right:6%;top:112px;height:150px}.beam{position:absolute;left:8%;right:8%;top:18px;height:14px;border-radius:8px;background:var(--purple);transform-origin:50% 50%;transition:transform .45s cubic-bezier(.2,.8,.2,1)}.pivot{position:absolute;left:50%;top:20px;transform:translateX(-50%);width:0;height:0;border-left:38px solid transparent;border-right:38px solid transparent;border-bottom:110px solid color-mix(in srgb,var(--purple) 72%,var(--line));z-index:0}.joint{position:absolute;left:50%;top:9px;transform:translateX(-50%);width:34px;height:34px;border-radius:50%;background:var(--orange);border:5px solid var(--card);z-index:4}.hanger{position:absolute;top:28px;width:2px;height:72px;background:var(--line);transform-origin:top center}.hanger.left{left:14%}.hanger.right{right:14%}.pan{position:absolute;top:94px;width:41%;min-height:80px;padding:10px 8px 8px;border:3px solid var(--line);border-top:0;border-radius:0 0 44px 44px;background:var(--pan);display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;transition:transform .45s}.pan.left{left:-2%}.pan.right{right:-2%}.object{font-size:31px;position:relative}.badge{display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:36px;padding:0 8px;border-radius:12px;background:var(--orange);color:#28231b;font-weight:900;border:2px solid rgba(0,0,0,.12);font-size:15px}.placed{cursor:pointer;animation:pop .2s ease}.placed:hover{transform:scale(1.06)}@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}.totals{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:13px;color:var(--muted)}
+.weights-title{text-align:center;font-weight:800;margin:5px 0 8px}.weights{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}.weight{border:2px solid var(--line);background:var(--card);color:var(--text);border-radius:14px;padding:10px 14px;min-width:58px;font-size:18px;font-weight:900;cursor:pointer;touch-action:manipulation}.weight:hover{border-color:var(--blue);transform:translateY(-1px)}.weight:active{transform:scale(.96)}.actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.btn{border:0;border-radius:15px;padding:13px;font-size:16px;font-weight:800;cursor:pointer}.check{background:var(--green);color:white}.clear{background:color-mix(in srgb,var(--red) 15%,var(--card));color:var(--red);border:2px solid color-mix(in srgb,var(--red) 35%,var(--line))}.help{margin-top:11px;text-align:center;color:var(--muted);font-size:13px}.stars{letter-spacing:2px}.celebrate{position:absolute;inset:0;pointer-events:none;overflow:hidden}.confetti{position:absolute;font-size:24px;animation:fly 1s ease-out forwards}@keyframes fly{from{opacity:1;transform:translateY(0) rotate(0)}to{opacity:0;transform:translateY(-150px) rotate(300deg)}}
+@media(max-width:520px){body{padding:8px}.card{padding:16px 12px}.stats{grid-template-columns:repeat(2,1fr)}.scale-area{height:270px}.beam-wrap{top:105px}.object{font-size:27px}.pan{width:43%}.weight{min-width:52px;padding:9px 11px}}
+</style>
+</head>
+<body>
+<main class="card">
+<button id="theme" class="theme" aria-label="Alternar tema">🌙</button>
+<h1>⚖️ Balança Maluca</h1>
+<p class="sub">Escolha os pesos certos e deixe a balança perfeitamente equilibrada!</p>
+<div class="stats">
+  <div class="stat"><small>⭐ Pontos</small><strong id="score">0</strong></div>
+  <div class="stat"><small>🏆 Recorde</small><strong id="best">0</strong></div>
+  <div class="stat"><small>🎯 Fase</small><strong id="level">1</strong></div>
+  <div class="stat"><small>🔥 Sequência</small><strong id="streak">0</strong></div>
+</div>
+<div class="status" id="status">Observe o lado esquerdo e monte o mesmo peso.</div>
+<div class="challenge"><strong id="prompt">Quanto pesa tudo junto?</strong><br><span id="hint">Toque nos pesos para colocar no prato direito.</span></div>
+<section class="scale-area">
+  <div class="beam-wrap">
+    <div class="pivot"></div><div class="joint"></div>
+    <div class="beam" id="beam"></div>
+    <div class="hanger left" id="hangL"></div><div class="hanger right" id="hangR"></div>
+    <div class="pan left" id="leftPan"></div><div class="pan right" id="rightPan"></div>
+  </div>
+  <div class="totals" id="totals">Esquerda: ? · Direita: 0</div>
+</section>
+<div class="weights-title">Pesos disponíveis</div>
+<div class="weights" id="weights"></div>
+<div class="actions"><button class="btn clear" id="clear">↩️ Tirar todos</button><button class="btn check" id="check">✅ Conferir</button></div>
+<div class="help">Dica: toque em um peso que já está no prato direito para removê-lo.</div>
+<div class="celebrate" id="celebrate"></div>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const scoreEl=$('score'),bestEl=$('best'),levelEl=$('level'),streakEl=$('streak'),statusEl=$('status'),leftPan=$('leftPan'),rightPan=$('rightPan'),weightsEl=$('weights'),beam=$('beam'),hangL=$('hangL'),hangR=$('hangR'),totals=$('totals'),prompt=$('prompt'),hint=$('hint'),celebrate=$('celebrate');
+let score=0,streak=0,level=1,target=0,placed=[],locked=false;
+let best=Number(localStorage.getItem('balanca-maluca-best')||0);bestEl.textContent=best;
+const OBJECTS=[['🍎',1,'maçã'],['🍌',2,'banana'],['🧸',3,'ursinho'],['⚽',4,'bola'],['🚗',5,'carrinho'],['📚',6,'livros'],['🎁',7,'presente'],['🐱',4,'gatinho'],['🍉',5,'melancia'],['🎒',6,'mochila']];
+const WEIGHTS=[1,2,3,4,5,7,10];
+function tone(freq=520,d=.08,type='sine'){try{const C=window.AudioContext||window.webkitAudioContext,c=new C(),o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.12,c.currentTime);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+d);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+d)}catch(e){}}
+function availableWeights(){if(level<=2)return [1,2,3,4,5];if(level<=5)return [1,2,3,4,5,7];return WEIGHTS}
+function sumRight(){return placed.reduce((a,b)=>a+b,0)}
+function renderWeights(){weightsEl.innerHTML='';availableWeights().forEach(v=>{const b=document.createElement('button');b.className='weight';b.textContent=`${v} kg`;b.onclick=()=>{if(locked)return;placed.push(v);tone(430+v*24,.05);renderRight();updateScale()};weightsEl.appendChild(b)})}
+function renderRight(){rightPan.innerHTML='';if(!placed.length){rightPan.innerHTML='<span style="color:var(--muted);font-size:13px">coloque pesos aqui</span>';return}placed.forEach((v,i)=>{const b=document.createElement('button');b.className='badge placed';b.textContent=v+' kg';b.title='Remover';b.onclick=()=>{if(locked)return;placed.splice(i,1);tone(300,.05);renderRight();updateScale()};rightPan.appendChild(b)})}
+function updateScale(){const r=sumRight(),diff=Math.max(-12,Math.min(12,r-target)),ang=diff*2.15;beam.style.transform=`rotate(${ang}deg)`;hangL.style.transform=`translateY(${ang*1.6}px)`;hangR.style.transform=`translateY(${-ang*1.6}px)`;leftPan.style.transform=`translateY(${ang*1.6}px)`;rightPan.style.transform=`translateY(${-ang*1.6}px)`;totals.textContent=`Esquerda: ${level<=2?target+' kg':'?'} · Direita: ${r} kg`;}
+function pickChallenge(){locked=false;placed=[];levelEl.textContent=level;renderRight();renderWeights();const maxObjs=Math.min(1+Math.floor((level-1)/2),3);let count=1+Math.floor(Math.random()*maxObjs);let pool=OBJECTS.filter(o=>o[1]<=Math.min(7,3+level));let chosen=[];target=0;for(let i=0;i<count;i++){const o=pool[Math.floor(Math.random()*pool.length)];chosen.push(o);target+=o[1]}if(target>17){target=0;chosen=chosen.slice(0,2);chosen.forEach(o=>target+=o[1])}leftPan.innerHTML='';chosen.forEach(o=>{const wrap=document.createElement('div');wrap.className='object';wrap.textContent=o[0];if(level<=3){const s=document.createElement('span');s.style.cssText='position:absolute;right:-8px;bottom:-5px;background:var(--orange);color:#28231b;border-radius:9px;padding:1px 5px;font-size:11px;font-weight:900';s.textContent=o[1]+'kg';wrap.appendChild(s)}leftPan.appendChild(wrap)});
+if(level<=2){prompt.textContent='Quanto pesa tudo junto?';hint.textContent='Some os objetos e coloque esse peso no outro prato.'}else if(level<=5){prompt.textContent='Equilibre a balança!';hint.textContent='Os objetos ainda mostram seus pesos. Faça a soma.'}else{prompt.textContent='Desafio maluco: descubra pelo equilíbrio!';hint.textContent='Os números dos objetos sumiram. Teste combinações até nivelar a balança.'}statusEl.textContent='Monte o peso do lado direito.';updateScale()}
+function confetti(){const icons=['⭐','✨','🎉','⚖️','🌟'];for(let i=0;i<16;i++){const x=document.createElement('span');x.className='confetti';x.textContent=icons[Math.floor(Math.random()*icons.length)];x.style.left=(10+Math.random()*80)+'%';x.style.top=(45+Math.random()*30)+'%';celebrate.appendChild(x);setTimeout(()=>x.remove(),1000)}}
+function check(){if(locked)return;const r=sumRight();if(r===target){locked=true;streak++;const bonus=20+level*5+Math.min(streak,5)*3;score+=bonus;scoreEl.textContent=score;streakEl.textContent=streak;statusEl.textContent=`🎉 Equilibrou! +${bonus} pontos`;tone(660,.12);setTimeout(()=>tone(880,.16),90);confetti();if(score>best){best=score;bestEl.textContent=best;localStorage.setItem('balanca-maluca-best',best)}setTimeout(()=>{level++;pickChallenge()},1150)}else{streak=0;streakEl.textContent=0;const d=target-r;statusEl.textContent=d>0?`Ainda está leve: faltam ${d} kg.`:`Ficou pesado demais: tire ${Math.abs(d)} kg.`;tone(180,.12,'square')}}
+$('check').onclick=check;$('clear').onclick=()=>{if(locked)return;placed=[];renderRight();updateScale();statusEl.textContent='Prato direito limpo. Tente outra combinação!'};
+const theme=$('theme');function applyTheme(t){document.documentElement.dataset.theme=t;theme.textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('balanca-maluca-theme',t)}applyTheme(localStorage.getItem('balanca-maluca-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'));theme.onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+pickChallenge();
+})();
+</script>
+</body>
+</html>
