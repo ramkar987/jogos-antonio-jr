@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json, re, shutil, zipfile
 from pathlib import Path
+from mobile_drag_upgrade import patch_file as apply_drag_upgrade
 
 ROOT = Path(__file__).resolve().parents[1]
 IMPORTS = ROOT / 'imports'
@@ -118,6 +119,7 @@ for zpath in sorted(IMPORTS.glob('*.zip')):
         dst = GAMES_DIR / name
         shutil.copy2(src, dst)
         apply_mobile_fixes(dst)
+        apply_drag_upgrade(dst)
         title, desc = extract_meta(dst)
         old = old_imports.get(rel, {})
         icon, categories = KNOWN.get(name, (old.get('icon', '🎮'), old.get('categories', ['Importado'])))

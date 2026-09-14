@@ -271,6 +271,7 @@
   let lives = MAX_LIVES;
   let gameActive = false;
   let dragging = false;
+  let activePointerId = null;
   let ballPos = { x: 0, y: 0 };
   let startPos = { x: 0, y: 0 };
   let goalPos = { x: 0, y: 0 };
@@ -392,41 +393,51 @@
     return { x: relX, y: relY };
   }
 
-  function pointFromEvent(e){
-    if (e.touches && e.touches.length > 0){
-      return getSvgPoint(e.touches[0].clientX, e.touches[0].clientY);
+  function moveBallSafely(p){
+    const dx = p.x - ballPos.x, dy = p.y - ballPos.y;
+    const dist = Math.hypot(dx, dy);
+    const steps = Math.max(1, Math.ceil(dist / 1.1));
+    for (let i = 1; i <= steps; i++){
+      const x = ballPos.x + dx * (i / steps);
+      const y = ballPos.y + dy * (i / steps);
+      if (checkWallCollision(x, y)){
+        hitWall();
+        return false;
+      }
     }
-    return getSvgPoint(e.clientX, e.clientY);
+    ballPos = p;
+    drawMaze(false);
+    if (checkGoalReached(p.x, p.y)) winLevel();
+    return true;
   }
 
   function handleStart(e){
     if (!gameActive) return;
-    const p = pointFromEvent(e);
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const p = getSvgPoint(e.clientX, e.clientY);
     const dx = p.x - ballPos.x, dy = p.y - ballPos.y;
-    if (Math.sqrt(dx*dx + dy*dy) < 8){
+    if (Math.sqrt(dx*dx + dy*dy) < 9){
       dragging = true;
+      activePointerId = e.pointerId;
+      try { mazeWrap.setPointerCapture(e.pointerId); } catch (_) {}
     }
+    e.preventDefault();
   }
 
   function handleMove(e){
     if (!gameActive || !dragging) return;
-    const p = pointFromEvent(e);
-
-    if (checkWallCollision(p.x, p.y)){
-      hitWall();
-      return;
-    }
-
-    ballPos = p;
-    drawMaze(false);
-
-    if (checkGoalReached(p.x, p.y)){
-      winLevel();
-    }
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    moveBallSafely(getSvgPoint(e.clientX, e.clientY));
+    e.preventDefault();
   }
 
-  function handleEnd(){
+  function handleEnd(e){
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    if (activePointerId !== null){
+      try { if (mazeWrap.hasPointerCapture(activePointerId)) mazeWrap.releasePointerCapture(activePointerId); } catch (_) {}
+    }
     dragging = false;
+    activePointerId = null;
   }
 
   function hitWall(){
@@ -471,13 +482,10 @@
     levelEl.textContent = level;
   }
 
-  mazeWrap.addEventListener('mousedown', handleStart);
-  mazeWrap.addEventListener('mousemove', handleMove);
-  window.addEventListener('mouseup', handleEnd);
-
-  mazeWrap.addEventListener('touchstart', (e) => { handleStart(e); e.preventDefault(); }, { passive: false });
-  mazeWrap.addEventListener('touchmove', (e) => { handleMove(e); e.preventDefault(); }, { passive: false });
-  mazeWrap.addEventListener('touchend', handleEnd);
+  mazeWrap.addEventListener('pointerdown', handleStart);
+  mazeWrap.addEventListener('pointermove', handleMove);
+  mazeWrap.addEventListener('pointerup', handleEnd);
+  mazeWrap.addEventListener('pointercancel', handleEnd);
 
   function startGame(startingLevel){
     level = startingLevel || 1;

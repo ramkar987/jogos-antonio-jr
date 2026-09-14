@@ -22,7 +22,7 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | BAIXO | Cofre dos Números | `data/cofre_dos_numeros.gz.b64` | teclado, clique, controle-na-tela | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Constrói a Ponte | `data/constroi_a_ponte.gz.b64` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Corrida de Carrinhos | `data/corrida_de_carrinhos.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
-| BAIXO | Corta Frutas | `jogos/corta-frutas.html` | pointer, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Corta Frutas | `jogos/corta-frutas.html` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Código Secreto de Setas | `data/codigo_secreto_de_setas.gz.b64` | teclado, touch, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Dentista Divertido | `jogos/dentista-divertido.html` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Duelo de Bananas | `jogos/duelo-de-bananas.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
@@ -40,11 +40,11 @@ Relatório estático gerado automaticamente. Ele aponta riscos prováveis no có
 | BAIXO | Jogo da Velha | `jogos/jogo-da-velha.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jogo de Damas | `jogos/jogo-de-damas.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Jogo dos Quadradinhos | `jogos/jogo-dos-quadradinhos.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
-| BAIXO | Labirinto Elétrico | `jogos/labirinto-eletrico.html` | touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Labirinto Elétrico | `jogos/labirinto-eletrico.html` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Ligue 4 | `jogos/ligue-4.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Limpa o Oceano | `jogos/limpa-o-oceano.html` | teclado, pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Mastermind | `jogos/mastermind.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
-| BAIXO | Mesa de Ar | `jogos/mesa-de-ar.html` | pointer, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
+| BAIXO | Mesa de Ar | `jogos/mesa-de-ar.html` | pointer, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Mini Pinball | `data/mini_pinball.gz.b64` | teclado, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Para Onde o Robô Vai? | `jogos/robo-programacao-reversa.html` | clique | há interação compatível com toque ou não há dependência móvel óbvia |
 | BAIXO | Passarinho Faminto | `jogos/passarinho-faminto.html` | pointer, touch, mouse, clique | há interação compatível com toque ou não há dependência móvel óbvia |

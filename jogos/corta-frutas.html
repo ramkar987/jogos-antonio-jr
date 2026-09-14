@@ -320,6 +320,7 @@
 
   let trailPoints = []; // pontos recentes do dedo/mouse pra desenhar rastro e detectar corte
   let pointerDown = false;
+  let activePointerId = null;
 
   try { best = parseInt(localStorage.getItem('cortafrutas-best') || '0', 10) || 0; } catch(e) {}
   bestEl.textContent = best;
@@ -487,37 +488,38 @@
 
   function handlePointerDown(e){
     if (!gameActive) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
     pointerDown = true;
-    const p = pointFromEvent(e);
+    activePointerId = e.pointerId;
+    try { stageWrap.setPointerCapture(e.pointerId); } catch (_) {}
+    const p = getStageRelativePoint(e.clientX, e.clientY);
     trailPoints.push({ x: p.x, y: p.y, t: performance.now() });
     checkSliceAt(p.x, p.y);
+    e.preventDefault();
   }
 
   function handlePointerMove(e){
     if (!gameActive || !pointerDown) return;
-    const p = pointFromEvent(e);
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    const p = getStageRelativePoint(e.clientX, e.clientY);
     trailPoints.push({ x: p.x, y: p.y, t: performance.now() });
     checkSliceAt(p.x, p.y);
+    e.preventDefault();
   }
 
-  function handlePointerUp(){
-    pointerDown = false;
-  }
-
-  function pointFromEvent(e){
-    if (e.touches && e.touches.length > 0){
-      return getStageRelativePoint(e.touches[0].clientX, e.touches[0].clientY);
+  function handlePointerUp(e){
+    if (activePointerId !== null && e.pointerId !== activePointerId) return;
+    if (activePointerId !== null){
+      try { if (stageWrap.hasPointerCapture(activePointerId)) stageWrap.releasePointerCapture(activePointerId); } catch (_) {}
     }
-    return getStageRelativePoint(e.clientX, e.clientY);
+    pointerDown = false;
+    activePointerId = null;
   }
 
-  stageWrap.addEventListener('mousedown', handlePointerDown);
-  stageWrap.addEventListener('mousemove', handlePointerMove);
-  window.addEventListener('mouseup', handlePointerUp);
-
-  stageWrap.addEventListener('touchstart', (e) => { handlePointerDown(e); e.preventDefault(); }, { passive: false });
-  stageWrap.addEventListener('touchmove', (e) => { handlePointerMove(e); e.preventDefault(); }, { passive: false });
-  stageWrap.addEventListener('touchend', handlePointerUp);
+  stageWrap.addEventListener('pointerdown', handlePointerDown);
+  stageWrap.addEventListener('pointermove', handlePointerMove);
+  stageWrap.addEventListener('pointerup', handlePointerUp);
+  stageWrap.addEventListener('pointercancel', handlePointerUp);
 
   function clearStage(){
     objects.forEach(o => o.el.remove());
