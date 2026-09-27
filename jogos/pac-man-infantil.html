@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pac-Man Infantil</title>
+<style>
+:root{
+  --bg:#F6F4EF;
+  --card:#FFFFFF;
+  --text:#242424;
+  --muted:#6B6B6B;
+  --line:#DED9CF;
+  --orange:#EF9F27;
+  --blue:#378ADD;
+  --red:#E24B4A;
+  --green:#639922;
+  --purple:#3C3489;
+  --shadow:0 12px 34px rgba(0,0,0,.12);
+}
+[data-theme="dark"]{
+  --bg:#181A1F;
+  --card:#23262D;
+  --text:#F5F5F5;
+  --muted:#B7BBC5;
+  --line:#3B414C;
+  --shadow:0 12px 34px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{padding:18px 12px;display:flex;justify-content:center;align-items:flex-start}
+.card{width:min(100%,460px);background:var(--card);border-radius:24px;box-shadow:var(--shadow);padding:18px;position:relative;overflow:hidden}
+.theme-btn{position:absolute;right:14px;top:14px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:20px;cursor:pointer}
+h1{margin:2px 54px 2px 0;color:var(--purple);font-size:28px;line-height:1.05}
+.subtitle{margin:8px 48px 14px 0;color:var(--muted);font-size:14px;line-height:1.35}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stat{border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;background:color-mix(in srgb,var(--card) 92%,var(--blue) 8%)}
+.stat small{display:block;color:var(--muted);font-size:11px}
+.stat strong{display:block;font-size:18px;margin-top:1px}
+.status{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;border-radius:13px;padding:8px 10px;margin-bottom:10px;background:color-mix(in srgb,var(--card) 88%,var(--orange) 12%);font-weight:800;font-size:14px}
+.game-shell{background:#090D1A;border:1px solid var(--line);border-radius:20px;overflow:hidden;padding:8px}
+canvas{display:block;width:100%;height:auto;aspect-ratio:380/420;background:#070A13;border-radius:14px;touch-action:pan-y;user-select:none}
+.info-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.badge{border:1px solid var(--line);border-radius:14px;padding:8px 10px;text-align:center;background:var(--card)}
+.badge small{display:block;font-size:11px;color:var(--muted);font-weight:800}
+.badge strong{display:block;font-size:14px;margin-top:2px}
+.controls{width:190px;margin:12px auto 0;display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,52px);gap:6px;justify-content:center}
+.dir{border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card) 84%,var(--blue) 16%);color:var(--purple);font-size:25px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.1);touch-action:manipulation}
+.dir:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.1)}
+.up{grid-column:2}.left{grid-column:1;grid-row:2}.down{grid-column:2;grid-row:2}.right{grid-column:3;grid-row:2}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.btn{min-height:52px;border:0;border-radius:16px;color:#fff;font-weight:900;font-size:16px;cursor:pointer;box-shadow:0 4px 0 rgba(0,0,0,.14)}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.14)}
+.start{background:var(--green)}
+.pause{background:var(--orange)}
+.help,.best{text-align:center;color:var(--muted);font-size:12px;line-height:1.42}
+.help{margin-top:10px}.best{margin-top:7px}
+.kbd{display:inline-block;padding:1px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;background:var(--card);color:var(--text);font-size:11px}
+@media(max-width:390px){.card{padding:14px;border-radius:20px}h1{font-size:25px}.controls{width:180px;grid-template-columns:repeat(3,54px)}.dir{font-size:23px}}
+</style>
+</head>
+<body>
+<div class="card">
+  <button id="themeBtn" class="theme-btn" aria-label="Alternar tema">🌙</button>
+  <h1>Pac-Man Infantil</h1>
+  <div class="subtitle">Coma todas as bolinhas, fuja dos fantasmas e use as superbolinhas para virar o jogo!</div>
+
+  <div class="stats">
+    <div class="stat"><small>PONTOS</small><strong id="score">0</strong></div>
+    <div class="stat"><small>VIDAS</small><strong id="lives">● ● ●</strong></div>
+    <div class="stat"><small>FASE</small><strong id="phase">1</strong></div>
+  </div>
+
+  <div class="status" id="status">Aperte “Iniciar jogo” para começar.</div>
+
+  <div class="game-shell">
+    <canvas id="game" width="380" height="420" aria-label="Labirinto do Pac-Man"></canvas>
+  </div>
+
+  <div class="info-row">
+    <div class="badge"><small>BOLINHAS</small><strong id="pellets">0</strong></div>
+    <div class="badge"><small>SUPERPODER</small><strong id="power">—</strong></div>
+  </div>
+
+  <div class="controls" aria-label="Controles de direção">
+    <button type="button" class="dir up" data-dir="up" aria-label="Cima">↑</button>
+    <button type="button" class="dir left" data-dir="left" aria-label="Esquerda">←</button>
+    <button type="button" class="dir down" data-dir="down" aria-label="Baixo">↓</button>
+    <button type="button" class="dir right" data-dir="right" aria-label="Direita">→</button>
+  </div>
+
+  <div class="actions">
+    <button id="startBtn" class="btn start">Iniciar jogo</button>
+    <button id="pauseBtn" class="btn pause">Pausar</button>
+  </div>
+
+  <div class="help">Use <span class="kbd">↑ ↓ ← →</span>, <span class="kbd">W A S D</span>, os botões ou deslize o dedo no labirinto. As bolinhas grandes deixam os fantasmas vulneráveis por alguns segundos.</div>
+  <div class="best">Melhor pontuação: <strong id="best">0</strong></div>
+</div>
+
+<script>
+"use strict";
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+const livesEl = document.getElementById("lives");
+const phaseEl = document.getElementById("phase");
+const pelletsEl = document.getElementById("pellets");
+const powerEl = document.getElementById("power");
+const statusEl = document.getElementById("status");
+const bestEl = document.getElementById("best");
+const startBtn = document.getElementById("startBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const themeBtn = document.getElementById("themeBtn");
+
+const THEME_KEY = "kidsGamesTheme";
+const BEST_KEY = "pacManInfantilBest";
+const TILE = 18;
+const COLS = 19;
+const ROWS = 21;
+const OX = 19;
+const OY = 21;
+
+const DIRS = {
+  left:{x:-1,y:0,name:"left"}, right:{x:1,y:0,name:"right"},
+  up:{x:0,y:-1,name:"up"}, down:{x:0,y:1,name:"down"},
+  none:{x:0,y:0,name:"none"}
+};
+const DIR_LIST = [DIRS.left,DIRS.right,DIRS.up,DIRS.down];
+const opposite = d => ({left:"right",right:"left",up:"down",down:"up",none:"none"}[d.name]);
+
+const MAZE_A = [
+"###################",
+"#........#........#",
+"#.###.##.#.##.###.#",
+"#o###.##.#.##.###o#",
+"#.................#",
+"#.###.#.#####.#.###",
+"#.....#...#...#...#",
+"#####.###.#.###.###",
+"#...#.#.......#...#",
+"#.#.#.#.###.#.#.#.#",
+"#.#.....#...#.....#",
+"#.#.###.#GGG#.###.#",
+"#.....#.#G  #.#...#",
+"###.#.#.#####.#.###",
+"#...#.....P.....#.#",
+"#.#####.#####.###.#",
+"#o....#...#...#..o#",
+"###.#.###.#.###.#.#",
+"#...#.....#.....#.#",
+"#.#######.#######.#",
+"###################"
+];
+const MAZE_B = [
+"###################",
+"#o....#.....#....o#",
+"#.###.#.###.#.###.#",
+"#.....#.#.#.#.....#",
+"###.###.#.#.###.###",
+"#.......#.#.......#",
+"#.#####.#.#.#####.#",
+"#.#.....#.#.....#.#",
+"#.#.###.....###.#.#",
+"#...#...###...#...#",
+"###.#.#.....#.#.###",
+"#.....#.GGG.#.....#",
+"#.###.#.G  .#.###.#",
+"#...#.#.###.#.#...#",
+"###.#....P....#.###",
+"#...###.###.###...#",
+"#.###...#.#...###.#",
+"#o....#.....#....o#",
+"#.##.###.#.###.##.#",
+"#.................#",
+"###################"
+];
+const MAZE_C = MAZE_B.map(row => row.split("").reverse().join(""));
+const MAZES = [MAZE_A, MAZE_B, MAZE_C];
+
+const PHASES = [
+  {maze:0, playerSpeed:4.7, ghostSpeed:2.35, chase:.16, power:8.0},
+  {maze:0, playerSpeed:4.8, ghostSpeed:2.55, chase:.22, power:7.5},
+  {maze:1, playerSpeed:4.9, ghostSpeed:2.75, chase:.30, power:7.0},
+  {maze:1, playerSpeed:5.0, ghostSpeed:3.00, chase:.38, power:6.5},
+  {maze:1, playerSpeed:5.0, ghostSpeed:3.25, chase:.46, power:6.0},
+  {maze:2, playerSpeed:5.1, ghostSpeed:3.50, chase:.54, power:5.8},
+  {maze:2, playerSpeed:5.1, ghostSpeed:3.75, chase:.62, power:5.4},
+  {maze:2, playerSpeed:5.2, ghostSpeed:4.00, chase:.70, power:5.0}
+];
+
+const GHOST_COLORS = ["#E24B4A", "#F28DB2", "#52C7D9", "#EF9F27"];
+const state = {
+  running:false,
+  paused:false,
+  transition:false,
+  phase:1,
+  score:0,
+  lives:3,
+  best:Number(localStorage.getItem(BEST_KEY) || 0),
+  maze:MAZE_A,
+  pellets:new Map(),
+  player:null,
+  ghosts:[],
+  playerStart:null,
+  ghostStarts:[],
+  powerTimer:0,
+  ghostCombo:0,
+  lastTime:0,
+  raf:0,
+  runToken:0,
+  swipeStart:null
+};
+bestEl.textContent = state.best;
+
+let audioCtx = null;
+function beep(freq=440,duration=.06,type="sine",volume=.035){
+  try{
+    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq;
+    g.gain.setValueAtTime(volume,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
+    o.connect(g).connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime+duration);
+  }catch(_){ }
+}
+function pelletSound(){ beep(520,.028,"square",.018); }
+function powerSound(){ beep(220,.07,"square",.03); setTimeout(()=>beep(440,.09,"triangle",.03),65); }
+function ghostSound(){ beep(760,.05,"triangle",.035); setTimeout(()=>beep(980,.08,"triangle",.035),45); }
+function hurtSound(){ beep(150,.18,"sawtooth",.04); }
+function phaseSound(){ [523,659,784].forEach((f,i)=>setTimeout(()=>beep(f,.09,"triangle",.035),i*70)); }
+function winSound(){ [523,659,784,988].forEach((f,i)=>setTimeout(()=>beep(f,.1,"triangle",.04),i*75)); }
+
+function applyTheme(theme){
+  document.documentElement.dataset.theme=theme;
+  themeBtn.textContent=theme==="dark"?"☀️":"🌙";
+}
+applyTheme(localStorage.getItem(THEME_KEY)||"light");
+themeBtn.addEventListener("click",()=>{
+  const next=document.documentElement.dataset.theme==="dark"?"light":"dark";
+  localStorage.setItem(THEME_KEY,next); applyTheme(next); draw();
+});
+
+function setStatus(msg){ statusEl.textContent=msg; }
+function key(x,y){ return `${x},${y}`; }
+function inBounds(x,y){ return x>=0&&y>=0&&x<COLS&&y<ROWS; }
+function isWall(x,y){ return !inBounds(x,y) || state.maze[y][x]==="#"; }
+function canMove(x,y,d){ return d.name!=="none" && !isWall(x+d.x,y+d.y); }
+function entityPos(e){ return {x:e.cellX + e.dir.x*e.progress, y:e.cellY + e.dir.y*e.progress}; }
+function makeEntity(x,y,dir=DIRS.none){ return {cellX:x,cellY:y,dir,req:dir,progress:0,respawn:0}; }
+
+function loadPhase(number){
+  state.phase=number;
+  const cfg=PHASES[number-1];
+  state.maze=MAZES[cfg.maze];
+  state.pellets=new Map();
+  state.playerStart=null;
+  state.ghostStarts=[];
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      const c=state.maze[y][x];
+      if(c===".") state.pellets.set(key(x,y),"pellet");
+      else if(c==="o") state.pellets.set(key(x,y),"power");
+      else if(c==="P") state.playerStart={x,y};
+      else if(c==="G") state.ghostStarts.push({x,y});
+    }
+  }
+  resetPositions();
+  state.powerTimer=0;
+  state.ghostCombo=0;
+  state.transition=false;
+  updateUI();
+  draw();
+}
+
+function resetPositions(){
+  const p=state.playerStart;
+  state.player=makeEntity(p.x,p.y,DIRS.left);
+  state.player.req=DIRS.left;
+  state.ghosts=state.ghostStarts.slice(0,4).map((s,i)=>{
+    const g=makeEntity(s.x,s.y, i%2===0 ? DIRS.left : DIRS.right);
+    g.spawn={x:s.x,y:s.y}; g.index=i; g.respawn=0;
+    return g;
+  });
+}
+
+function updateUI(){
+  scoreEl.textContent=state.score;
+  livesEl.textContent=Array.from({length:Math.max(0,state.lives)},()=>"●").join(" ") || "—";
+  phaseEl.textContent=state.phase;
+  pelletsEl.textContent=state.pellets.size;
+  powerEl.textContent=state.powerTimer>0 ? `${state.powerTimer.toFixed(1)} s` : "—";
+  if(state.score>state.best){
+    state.best=state.score;
+    localStorage.setItem(BEST_KEY,String(state.best));
+    bestEl.textContent=state.best;
+  }
+}
+
+function setDirection(name){
+  if(!state.player) return;
+  const d=DIRS[name]; if(d) state.player.req=d;
+}
+
+function choosePlayerDirection(){
+  const p=state.player;
+  if(canMove(p.cellX,p.cellY,p.req)) p.dir=p.req;
+  else if(!canMove(p.cellX,p.cellY,p.dir)) p.dir=DIRS.none;
+}
+
+function ghostTarget(g){
+  const p=entityPos(state.player);
+  if(g.index===0) return p;
+  if(g.index===1) return {x:p.x + state.player.dir.x*3, y:p.y + state.player.dir.y*3};
+  if(g.index===2) return {x:p.x - state.player.dir.y*2, y:p.y + state.player.dir.x*2};
+  return {x:COLS-1-p.x, y:ROWS-1-p.y};
+}
+
+function chooseGhostDirection(g){
+  const cfg=PHASES[state.phase-1];
+  let options=DIR_LIST.filter(d=>canMove(g.cellX,g.cellY,d));
+  if(options.length>1){
+    const rev=opposite(g.dir);
+    const filtered=options.filter(d=>d.name!==rev);
+    if(filtered.length) options=filtered;
+  }
+  if(!options.length){ g.dir=DIRS.none; return; }
+  const target=ghostTarget(g);
+  const frightened=state.powerTimer>0;
+  if(Math.random() < (frightened ? .72 : cfg.chase)){
+    let best=options[0], bestScore=frightened ? -Infinity : Infinity;
+    for(const d of options){
+      const nx=g.cellX+d.x, ny=g.cellY+d.y;
+      const dist=Math.abs(nx-target.x)+Math.abs(ny-target.y);
+      if((frightened && dist>bestScore)||(!frightened&&dist<bestScore)){best=d;bestScore=dist;}
+    }
+    g.dir=best;
+  }else{
+    g.dir=options[Math.floor(Math.random()*options.length)];
+  }
+}
+
+function advanceEntity(e,speed,dt,onCenter,chooser){
+  let remaining=speed*dt;
+  let guard=0;
+  while(remaining>0 && guard++<12){
+    if(e.progress===0){
+      chooser(e);
+      if(e.dir.name==="none" || !canMove(e.cellX,e.cellY,e.dir)){ e.dir=DIRS.none; break; }
+    }
+    const travel=1-e.progress;
+    const step=Math.min(travel,remaining);
+    e.progress+=step; remaining-=step;
+    if(e.progress>=.999999){
+      e.cellX+=e.dir.x; e.cellY+=e.dir.y; e.progress=0;
+      if(onCenter) onCenter(e);
+    }
+  }
+}
+
+function eatAtPlayerCell(){
+  const k=key(state.player.cellX,state.player.cellY);
+  const item=state.pellets.get(k);
+  if(!item) return;
+  state.pellets.delete(k);
+  if(item==="pellet"){
+    state.score+=10; pelletSound();
+  }else{
+    state.score+=50; state.powerTimer=PHASES[state.phase-1].power; state.ghostCombo=0; powerSound();
+    setStatus("Superpoder! Agora você pode comer os fantasmas!");
+  }
+  updateUI();
+  if(state.pellets.size===0) finishPhase();
+}
+
+function checkCollisions(){
+  if(state.transition||state.paused||!state.running) return;
+  const p=entityPos(state.player);
+  for(const g of state.ghosts){
+    if(g.respawn>0) continue;
+    const gp=entityPos(g);
+    const dx=p.x-gp.x, dy=p.y-gp.y;
+    if(dx*dx+dy*dy < .42){
+      if(state.powerTimer>0){
+        state.ghostCombo++;
+        state.score += 200 * Math.pow(2,Math.min(3,state.ghostCombo-1));
+        ghostSound();
+        g.cellX=g.spawn.x; g.cellY=g.spawn.y; g.progress=0; g.dir=DIRS.none; g.req=DIRS.none; g.respawn=1.6;
+        setStatus("Fantasma comido! Continue enquanto o superpoder durar.");
+        updateUI();
+      }else{
+        loseLife();
+      }
+      return;
+    }
+  }
+}
+
+function loseLife(){
+  if(state.transition) return;
+  state.transition=true;
+  state.lives--; hurtSound(); updateUI();
+  setStatus(state.lives>0 ? "Ops! Um fantasma pegou você. Tente de novo!" : "Os fantasmas venceram esta rodada.");
+  const token=state.runToken;
+  setTimeout(()=>{
+    if(token!==state.runToken) return;
+    if(state.lives<=0){ gameOver(); return; }
+    resetPositions(); state.powerTimer=0; state.ghostCombo=0; state.transition=false; updateUI();
+  },900);
+}
+
+function finishPhase(){
+  if(state.transition) return;
+  state.transition=true;
+  state.score+=500; phaseSound(); updateUI();
+  setStatus("Labirinto limpo! Próxima fase!");
+  const token=state.runToken;
+  if(state.phase>=PHASES.length){
+    setTimeout(()=>{ if(token===state.runToken) winGame(); },1000);
+  }else{
+    setTimeout(()=>{
+      if(token!==state.runToken) return;
+      loadPhase(state.phase+1);
+      state.transition=false;
+      setStatus("Nova fase! Os fantasmas ficaram um pouco mais espertos.");
+    },1000);
+  }
+}
+
+function gameOver(){
+  state.running=false; state.paused=false; state.transition=false;
+  cancelAnimationFrame(state.raf);
+  pauseBtn.textContent="Pausar";
+  setStatus(`Fim de jogo! Você fez ${state.score} pontos.`);
+  updateUI(); draw();
+}
+function winGame(){
+  state.running=false; state.paused=false; state.transition=false;
+  cancelAnimationFrame(state.raf); winSound(); pauseBtn.textContent="Pausar";
+  setStatus(`Você venceu as 8 fases! Pontuação: ${state.score}.`);
+  updateUI(); draw();
+}
+
+function startGame(){
+  state.runToken++;
+  cancelAnimationFrame(state.raf);
+  state.score=0; state.lives=3; state.running=true; state.paused=false; state.transition=false;
+  loadPhase(1);
+  eatAtPlayerCell();
+  setStatus("Vamos! Coma as bolinhas e fuja dos fantasmas.");
+  startBtn.textContent="Jogar novamente"; pauseBtn.textContent="Pausar";
+  state.lastTime=performance.now();
+  state.raf=requestAnimationFrame(loop);
+  beep(520,.08,"triangle",.03);
+}
+
+function togglePause(){
+  if(!state.running) return;
+  state.paused=!state.paused;
+  pauseBtn.textContent=state.paused?"Continuar":"Pausar";
+  setStatus(state.paused?"Jogo pausado.":"Continue! Coma todas as bolinhas.");
+  if(!state.paused) state.lastTime=performance.now();
+  draw();
+}
+
+function loop(now){
+  if(!state.running) return;
+  const dt=Math.min(.035,Math.max(0,(now-state.lastTime)/1000||.016));
+  state.lastTime=now;
+  if(!state.paused && !state.transition){
+    const cfg=PHASES[state.phase-1];
+    if(state.powerTimer>0){
+      state.powerTimer=Math.max(0,state.powerTimer-dt);
+      if(state.powerTimer===0){state.ghostCombo=0;setStatus("O superpoder acabou. Cuidado com os fantasmas!");}
+    }
+    for(const g of state.ghosts) if(g.respawn>0) g.respawn=Math.max(0,g.respawn-dt);
+    advanceEntity(state.player,cfg.playerSpeed,dt,e=>eatAtPlayerCell(),choosePlayerDirection);
+    for(const g of state.ghosts){
+      if(g.respawn<=0) advanceEntity(g,cfg.ghostSpeed*(state.powerTimer>0?.78:1),dt,null,chooseGhostDirection);
+    }
+    checkCollisions();
+    updateUI();
+  }
+  draw(now/1000);
+  state.raf=requestAnimationFrame(loop);
+}
+
+function cellCenter(x,y){ return {x:OX+(x+.5)*TILE,y:OY+(y+.5)*TILE}; }
+function drawMaze(){
+  ctx.fillStyle="#070A13"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      if(state.maze[y][x]!=="#") continue;
+      const px=OX+x*TILE, py=OY+y*TILE;
+      ctx.fillStyle="#244DD8"; ctx.fillRect(px+1,py+1,TILE-2,TILE-2);
+      ctx.fillStyle="#101941"; ctx.fillRect(px+4,py+4,TILE-8,TILE-8);
+    }
+  }
+}
+
+function drawPellets(t){
+  for(const [k,type] of state.pellets){
+    const [x,y]=k.split(",").map(Number), c=cellCenter(x,y);
+    ctx.beginPath();
+    const r=type==="power" ? 5.1 + Math.sin((t||0)*6)*.8 : 2.1;
+    ctx.arc(c.x,c.y,r,0,Math.PI*2);
+    ctx.fillStyle=type==="power"?"#FFF2A0":"#F8D9AD"; ctx.fill();
+  }
+}
+
+function drawPlayer(t){
+  if(!state.player) return;
+  const p=entityPos(state.player), c=cellCenter(p.x,p.y);
+  const mouth=.18 + Math.abs(Math.sin((t||0)*11))*.25;
+  let angle=0;
+  if(state.player.dir.name==="left") angle=Math.PI;
+  if(state.player.dir.name==="up") angle=-Math.PI/2;
+  if(state.player.dir.name==="down") angle=Math.PI/2;
+  ctx.beginPath();
+  ctx.moveTo(c.x,c.y);
+  ctx.arc(c.x,c.y,7.6,angle+mouth,angle+Math.PI*2-mouth);
+  ctx.closePath(); ctx.fillStyle="#FFD83D"; ctx.fill();
+}
+
+function drawGhostShape(x,y,color,frightened,blink){
+  const r=7.5;
+  ctx.save(); ctx.translate(x,y);
+  ctx.beginPath();
+  ctx.moveTo(-r,6);
+  ctx.lineTo(-r,-1);
+  ctx.arc(0,-1,r,Math.PI,0);
+  ctx.lineTo(r,6);
+  ctx.lineTo(r-3,3); ctx.lineTo(r-6,6); ctx.lineTo(r-9,3); ctx.lineTo(r-12,6); ctx.lineTo(-r,6);
+  ctx.closePath();
+  ctx.fillStyle=frightened ? (blink?"#F4F4F4":"#315CCB") : color; ctx.fill();
+  if(frightened){
+    ctx.fillStyle=blink?"#315CCB":"#fff";
+    ctx.fillRect(-4,-1,2,2); ctx.fillRect(3,-1,2,2);
+    ctx.strokeStyle=blink?"#315CCB":"#fff"; ctx.lineWidth=1.4;
+    ctx.beginPath(); ctx.moveTo(-4,4);ctx.lineTo(-2,2);ctx.lineTo(0,4);ctx.lineTo(2,2);ctx.lineTo(4,4);ctx.stroke();
+  }else{
+    ctx.fillStyle="#fff"; ctx.beginPath();ctx.arc(-3,-1,2.5,0,Math.PI*2);ctx.arc(3,-1,2.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#243A9B"; ctx.beginPath();ctx.arc(-2.5,-.5,1.2,0,Math.PI*2);ctx.arc(3.5,-.5,1.2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawGhosts(t){
+  state.ghosts.forEach((g,i)=>{
+    if(g.respawn>0) return;
+    const p=entityPos(g), c=cellCenter(p.x,p.y);
+    const blink=state.powerTimer>0 && state.powerTimer<1.8 && Math.floor((t||0)*8)%2===0;
+    drawGhostShape(c.x,c.y,GHOST_COLORS[i],state.powerTimer>0,blink);
+  });
+}
+
+function drawOverlay(){
+  if(state.running && !state.paused && !state.transition) return;
+  ctx.save();
+  ctx.fillStyle="rgba(0,0,0,.52)"; ctx.fillRect(OX,OY,COLS*TILE,ROWS*TILE);
+  ctx.textAlign="center"; ctx.fillStyle="#fff"; ctx.font="900 22px system-ui";
+  let title="PRONTO?";
+  if(state.paused) title="PAUSADO";
+  else if(state.transition && state.lives<=0) title="OPS!";
+  else if(!state.running && state.lives<=0) title="FIM DE JOGO";
+  else if(!state.running && state.phase>=8 && state.pellets.size===0) title="VOCÊ VENCEU!";
+  ctx.fillText(title,canvas.width/2,198);
+  ctx.font="700 12px system-ui"; ctx.fillStyle="#DDE4FF";
+  ctx.fillText(state.running?"Use as setas para continuar.":"Aperte Iniciar jogo.",canvas.width/2,220);
+  ctx.restore();
+}
+
+function draw(t=0){
+  if(!state.maze) return;
+  drawMaze(); drawPellets(t); drawPlayer(t); drawGhosts(t); drawOverlay();
+}
+
+function handleKey(e){
+  const tag=document.activeElement?.tagName;
+  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT") return;
+  const map={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",A:"left",d:"right",D:"right",w:"up",W:"up",s:"down",S:"down"};
+  if(map[e.key]){ e.preventDefault(); setDirection(map[e.key]); }
+  if(e.key===" " && state.running){ e.preventDefault(); togglePause(); }
+}
+window.addEventListener("keydown",handleKey);
+
+document.querySelectorAll(".dir").forEach(btn=>{
+  btn.addEventListener("pointerdown",e=>{e.preventDefault();setDirection(btn.dataset.dir);});
+});
+
+canvas.addEventListener("pointerdown",e=>{
+  state.swipeStart={x:e.clientX,y:e.clientY,id:e.pointerId};
+});
+canvas.addEventListener("pointerup",e=>{
+  if(!state.swipeStart||state.swipeStart.id!==e.pointerId) return;
+  const dx=e.clientX-state.swipeStart.x, dy=e.clientY-state.swipeStart.y;
+  state.swipeStart=null;
+  if(Math.hypot(dx,dy)<18) return;
+  if(Math.abs(dx)>Math.abs(dy)) setDirection(dx>0?"right":"left");
+  else setDirection(dy>0?"down":"up");
+});
+canvas.addEventListener("pointercancel",()=>state.swipeStart=null);
+startBtn.addEventListener("click",startGame);
+pauseBtn.addEventListener("click",togglePause);
+
+loadPhase(1);
+updateUI();
+draw();
+</script>
+</body>
+</html>
